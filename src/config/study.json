@@ -1,0 +1,5 @@
+{
+  "studyName": "Segmentation Annotation Study",
+  "instructions": "Draw a polygon around each structure you can identify, then assign it the correct class. Click to place points, click the first point again (or press Enter) to close the shape. Drag points to refine a shape after closing it.",
+  "treatments": []
+}

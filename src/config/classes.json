@@ -1,0 +1,7 @@
+[
+  { "id": "class-1", "name": "Class A", "color": "#ef4444" },
+  { "id": "class-2", "name": "Class B", "color": "#3b82f6" },
+  { "id": "class-3", "name": "Class C", "color": "#22c55e" },
+  { "id": "class-4", "name": "Class D", "color": "#f59e0b" },
+  { "id": "class-5", "name": "Class E", "color": "#a855f7" }
+]
