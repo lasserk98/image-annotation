@@ -8,8 +8,8 @@
   --border: #e2e4e9;
   --text: #17181c;
   --text-muted: #6b7280;
-  --accent: #6d28d9;
-  --accent-soft: rgba(109, 40, 217, 0.12);
+  --accent: #f5a225;
+  --accent-soft: #f5a22529;
   --danger: #dc2626;
   --success: #16a34a;
 }
@@ -22,8 +22,8 @@
     --border: #2b2d36;
     --text: #f2f3f5;
     --text-muted: #9aa0ab;
-    --accent: #a78bfa;
-    --accent-soft: rgba(167, 139, 250, 0.16);
+    --accent: #f8b34d;
+    --accent-soft: #f5a22529;
     --danger: #f87171;
     --success: #4ade80;
   }
