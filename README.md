@@ -30,9 +30,8 @@ npm run preview # serve the production build locally to sanity-check it
 
 ## How participants use it
 
-1. Enter a name and student ID (only the ID is required — there's no roster
-   to validate against, but both are editable later via the ✎ next to
-   Export in case of a typo).
+1. Enter a student ID (any non-empty value — there's no roster to validate
+   against, but it's editable later via the ✎ next to Export in case of a typo).
 2. Drag & drop, or click "+ Add", to load one or more local images. Images are
    read straight into the browser (as object URLs) and are never uploaded.
 3. Pick a class in the left sidebar (or press `1`-`9`).
@@ -99,7 +98,6 @@ Each export is one JSON file:
 ```json
 {
   "studentId": "s1234567",
-  "studentName": "Jane Doe",
   "treatment": "A",
   "exportedAt": "2026-09-01T12:00:00.000Z",
   "images": [

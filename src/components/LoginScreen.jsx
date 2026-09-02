@@ -5,7 +5,6 @@ import study from '../config/study.json'
 export default function LoginScreen() {
   const { login, t, state, setLang } = useApp()
   const [studentId, setStudentId] = useState('')
-  const [studentName, setStudentName] = useState('')
   const [treatment, setTreatment] = useState('')
   const [error, setError] = useState('')
 
@@ -23,7 +22,7 @@ export default function LoginScreen() {
       return
     }
     const finalTreatment = urlTreatment || treatment || null
-    login(id, finalTreatment, studentName.trim())
+    login(id, finalTreatment)
   }
 
   const studyName = typeof study.studyName === 'object' ? study.studyName[state.lang] : study.studyName
@@ -65,27 +64,10 @@ export default function LoginScreen() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>
-              {t('login.name')}
-            </label>
-            <input
-              autoFocus
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-              placeholder={t('login.namePlaceholder')}
-              className="w-full rounded-lg px-3 py-2 text-sm outline-none transition"
-              style={{
-                background: 'var(--surface-2)',
-                border: '1px solid var(--border)',
-                color: 'var(--text)',
-              }}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>
               {t('login.studentId')}
             </label>
             <input
+              autoFocus
               value={studentId}
               onChange={(e) => {
                 setStudentId(e.target.value)

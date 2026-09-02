@@ -4,12 +4,11 @@ import { polygonArea } from './geometry'
 // are recorded in original-image pixel space so they can be compared
 // directly against ground-truth masks regardless of how the browser
 // happened to render/zoom the image during annotation.
-export function buildExportData({ studentId, studentName, treatment, images, shapesByImage, classes }) {
+export function buildExportData({ studentId, treatment, images, shapesByImage, classes }) {
   const classById = Object.fromEntries(classes.map((c) => [c.id, c]))
 
   return {
     studentId,
-    studentName: studentName || null,
     treatment: treatment || null,
     exportedAt: new Date().toISOString(),
     tool: 'image-annotation',

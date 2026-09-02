@@ -54,15 +54,15 @@ function EditableField({ value, placeholder, title, className, onCommit }) {
 }
 
 export default function Header() {
-  const { state, logout, updateStudentId, updateStudentName, setLang, t } = useApp()
-  const { studentId, studentName, treatment, images, shapesByImage, classes, lang } = state
+  const { state, logout, updateStudentId, setLang, t } = useApp()
+  const { studentId, treatment, images, shapesByImage, classes, lang } = state
   const [showUsage, setShowUsage] = useState(false)
 
   const annotatedCount = images.filter((img) => (shapesByImage[img.id]?.length ?? 0) > 0).length
   const studyName = typeof study.studyName === 'object' ? study.studyName[lang] : study.studyName
 
   function handleExport() {
-    const data = buildExportData({ studentId, studentName, treatment, images, shapesByImage, classes })
+    const data = buildExportData({ studentId, treatment, images, shapesByImage, classes })
     const stamp = new Date().toISOString().replace(/[:.]/g, '-')
     downloadJSON(`annotations_${studentId}_${stamp}.json`, data)
   }
@@ -112,18 +112,14 @@ export default function Header() {
 
       <div className="flex items-center gap-2 pl-2 ml-1" style={{ borderLeft: '1px solid var(--border)' }}>
         <div className="text-right leading-tight">
-          <EditableField
-            value={studentName}
-            placeholder={t('header.addName')}
-            title={t('header.editNameTitle')}
-            className="text-xs font-medium text-right block"
-            onCommit={updateStudentName}
-          />
+          <p className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+            {t('header.studentIdLabel')}
+          </p>
           <EditableField
             value={studentId}
             placeholder={t('login.idPlaceholder')}
             title={t('header.editIdTitle')}
-            className="text-[11px] text-right block"
+            className="text-xs font-medium text-right block"
             onCommit={(v) => v && updateStudentId(v)}
           />
           {treatment && (
