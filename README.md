@@ -70,6 +70,15 @@ If `ids` is non-empty, only listed student IDs can log in. Leave it as an
 empty array (`{"ids": []}`) to accept any non-empty ID with no validation —
 useful while testing, before you have a real roster.
 
+**This file is gitignored on purpose** — it's not tracked, so real student
+IDs never enter this public repo's git history. Edit
+`src/config/roster.json` locally with the real list before you build for
+deployment. Important caveat: this is a purely static app, so the roster you
+build with still ends up embedded in the shipped JavaScript bundle — keeping
+it out of git avoids it living in the repo's history/GitHub UI, but anyone
+who opens DevTools on the deployed site can still read the list. Fine for
+identifying participants, not a real secret.
+
 ### `study.json`
 
 ```json
@@ -120,14 +129,17 @@ ground-truth masks of the same images.
 
 ## Deploying so participants can just open a link
 
-This repo is private, which means the built site (`dist/`) needs a host of
-your choosing — GitHub Pages for private repos requires GitHub Pro/Team/
-Enterprise, so unless your account has that, host the static `dist/` output
-some other way (e.g. Netlify, Vercel, an internal web server), or make the
-repo public if that's acceptable, and enable GitHub Pages from
-**Settings → Pages → Deploy from a branch** pointed at a `gh-pages` branch
-(or use a "build and deploy" GitHub Action). No server code or database is
-required for the default "download only" workflow this tool implements.
+This repo is public and deploys automatically via GitHub Pages: every push
+to `main` runs `.github/workflows/deploy.yml`, which builds the app and
+publishes `dist/` to **https://lasserk98.github.io/image-annotation/**. No
+server code or database is required for the default "download only"
+workflow this tool implements — check progress under the repo's **Actions**
+tab, and the live URL under **Settings → Pages**.
+
+Since `roster.json` is gitignored (see above), make sure it has the real
+student IDs you want *before* pushing the commit that should go live —
+whatever is in your local `src/config/roster.json` at build time is what
+ends up in the deployed bundle.
 
 ## Privacy
 

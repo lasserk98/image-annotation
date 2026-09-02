@@ -11,7 +11,7 @@ export function buildExportData({ studentId, treatment, images, shapesByImage, c
     studentId,
     treatment: treatment || null,
     exportedAt: new Date().toISOString(),
-    tool: 'landmark-segmentation',
+    tool: 'image-annotation',
     schemaVersion: 1,
     images: images.map((img) => {
       const shapes = shapesByImage[img.id] || []

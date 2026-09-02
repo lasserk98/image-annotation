@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Real student roster — never commit actual student IDs. Copy
+# src/config/roster.example.json to src/config/roster.json and fill it
+# in locally before building/deploying.
+src/config/roster.json
