@@ -11,7 +11,7 @@ const VERTEX_R = 5 // css px, constant regardless of zoom
 const EDGE_HIT_R = 6 // css px, tolerance for double-clicking an edge to insert a vertex
 
 export default function AnnotationCanvas() {
-  const { state, setShapes, selectShape, setActiveClass, selectImage, undo, redo } = useApp()
+  const { state, setShapes, selectShape, setActiveClass, selectImage, undo, redo, t } = useApp()
   const { classes, activeClassId, currentImageId, images, shapesByImage, selection } = state
   const image = images.find((i) => i.id === currentImageId) || null
   const shapes = (currentImageId && shapesByImage[currentImageId]) || []
@@ -218,6 +218,7 @@ export default function AnnotationCanvas() {
     function onKeyDown(e) {
       const tag = document.activeElement?.tagName
       if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return
+      if (document.querySelector('[role="dialog"]')) return
 
       if (e.key === 'Escape') {
         if (mode === 'draw') cancelDraw()
@@ -270,7 +271,7 @@ export default function AnnotationCanvas() {
   if (!image) {
     return (
       <div className="flex-1 flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>
-        <p className="text-sm">Add images on the left to get started.</p>
+        <p className="text-sm">{t('canvas.empty')}</p>
       </div>
     )
   }

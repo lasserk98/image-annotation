@@ -5,10 +5,10 @@ from study participants. Images are loaded from the participant's local disk and
 never leave their browser — only the resulting annotation coordinates (as JSON)
 get exported.
 
-Built for running annotation studies: participants identify themselves with a
-student ID, draw polygons around structures in a set of local images, assign
-each shape a class, and download a single JSON file with their results to send
-back to you.
+Built for running annotation studies: participants enter a student ID, draw
+polygons around structures in a set of local images, assign each shape a
+class, and download a single JSON file with their results to send back to
+you. Available in English and German (toggle in the top right).
 
 ## Quickstart
 
@@ -30,7 +30,8 @@ npm run preview # serve the production build locally to sanity-check it
 
 ## How participants use it
 
-1. Enter their student ID (validated against the roster you configure, see below).
+1. Enter a student ID (any non-empty value — there's no roster to validate
+   against, but it's editable later via the ✎ next to Export in case of a typo).
 2. Drag & drop, or click "+ Add", to load one or more local images. Images are
    read straight into the browser (as object URLs) and are never uploaded.
 3. Pick a class in the left sidebar (or press `1`-`9`).
@@ -41,65 +42,52 @@ npm run preview # serve the production build locally to sanity-check it
    it, or double-click an edge to insert a new vertex there.
 6. Switch between loaded images with the `‹ ›` toolbar buttons or arrow keys.
 7. When done, click **Export** in the header to download one JSON file with
-   every image's annotations, the student ID, and a timestamp.
+   every image's annotations.
 
-Other shortcuts: `Ctrl+Z` / `Ctrl+Shift+Z` undo/redo (per image), `Delete`
-removes the selected shape or vertex, `Esc` cancels the shape being drawn.
+Full instructions and the keyboard shortcut reference are available in-app
+behind the ⓘ icon in the header (translated along with the rest of the UI).
 
 ## Configuring the study
 
-Class and study settings live in `src/config/` and are bundled into the app
-at build time — edit these, then rebuild/redeploy. The roster is handled
-differently (see below).
+### `src/config/classes.json` — the default class list
 
-### `classes.json`
-
-The list of classes participants can assign to a shape, in order (so `1`-`9`
-map to the first nine entries):
+Bundled into the app at build time:
 
 ```json
 [{ "id": "class-1", "name": "Class A", "color": "#ef4444" }]
 ```
 
-### `public/roster.json`
+Participants can also **load their own class list at runtime** via the
+"Load" button above the class panel — pick a local `.json` file shaped
+either as `["Name A", "Name B"]` or `[{ "name": "Name A", "color": "#ef4444" }]`
+(`id` and `color` are optional and auto-generated/assigned if omitted). Once
+loaded it's saved to that browser's `localStorage` and stays active across
+reloads until "Reset" is clicked — handy for handing out a study-specific
+class list as a plain file alongside the images, without needing a rebuild.
 
-```json
-{ "ids": ["s1234567", "s7654321"] }
-```
-
-Unlike the other config files, the roster is loaded at *runtime* via
-`fetch('/roster.json')` rather than bundled at build time — so it lives in
-`public/` (served as a plain static file) and this file **doesn't exist in
-git at all** (it's gitignored). If `ids` is non-empty, only listed student
-IDs can log in; if the file is missing or `ids` is empty, any non-empty ID
-is accepted with no validation (the default, useful for testing).
-
-Because it's fetched at runtime instead of imported, a missing roster file
-never breaks the build — a fresh clone or CI checkout just falls back to
-"accept any ID". Create `public/roster.json` locally with the real list
-before building for a deployment that should enforce a roster; since it's
-gitignored, real student IDs never enter this public repo's git history.
-One caveat: this is a purely static app, so whatever is in `public/roster.json`
-at build/deploy time ships as a plain downloadable file on the live site —
-keeping it out of git avoids it living in the repo's history/GitHub UI, but
-anyone who inspects network requests on the deployed site can still read
-the list. Fine for identifying participants, not a real secret.
-
-### `study.json`
+### `src/config/study.json` — study name, instructions, treatments
 
 ```json
 {
-  "studyName": "Segmentation Annotation Study",
-  "instructions": "Shown behind the ⓘ icon in the header.",
+  "studyName": { "en": "Segmentation Annotation Study", "de": "…" },
+  "instructions": { "en": "Shown in the usage (ⓘ) modal.", "de": "…" },
   "treatments": []
 }
 ```
 
-If `treatments` is non-empty, participants pick one at login (recorded in
+`studyName`/`instructions` can be a plain string (shown as-is in both
+languages) or `{ "en": "...", "de": "..." }` for translated copy. If
+`treatments` is non-empty, participants pick one at login (recorded in
 their export). You can also assign a treatment via URL, e.g.
 `https://your-deploy-url/?treatment=A` — this skips the picker and locks the
 treatment for that link, handy for sending different participants different
 links.
+
+### Adding more UI languages
+
+All interface strings live in `src/i18n/translations.js` as flat
+`{ 'key': '...' }` dictionaries per language. Add a new language object
+there (and to the `LANGUAGES` array) to support more than English/German.
 
 ## Annotation data format
 
@@ -137,19 +125,24 @@ ground-truth masks of the same images.
 
 This repo is public and deploys automatically via GitHub Pages: every push
 to `main` runs `.github/workflows/deploy.yml`, which builds the app and
-publishes `dist/` to **https://lasserk98.github.io/image-annotation/**. No
-server code or database is required for the default "download only"
-workflow this tool implements — check progress under the repo's **Actions**
-tab, and the live URL under **Settings → Pages**.
+publishes `dist/`, currently reachable at both:
 
-Since `roster.json` is gitignored (see above), make sure it has the real
-student IDs you want *before* pushing the commit that should go live —
-whatever is in your local `src/config/roster.json` at build time is what
-ends up in the deployed bundle.
+- **https://annotate.umr-hno.de/** (custom domain, via the `public/CNAME` file)
+- **https://lasserk98.github.io/image-annotation/** (default Pages URL)
+
+No server code or database is required for the default "download only"
+workflow this tool implements — check progress under the repo's **Actions**
+tab, and DNS/HTTPS status under **Settings → Pages**. To point at a
+different custom domain instead, edit `public/CNAME` and update the DNS
+record accordingly (a `CNAME` record to `lasserk98.github.io` for a
+subdomain, or `A` records to GitHub's IPs for an apex domain); to drop the
+custom domain entirely, delete `public/CNAME`.
 
 ## Privacy
 
 Loaded images are held only in the browser tab's memory (as blob/object
 URLs) for the current session and are never sent anywhere. Closing or
 reloading the tab discards them — export before navigating away, and the
-tool will warn you if you try to leave with unexported annotations.
+tool will warn you if you try to leave with unexported annotations. There is
+no roster or other participant list bundled with the app, so no participant
+data lives in this repo at all.

@@ -1,6 +1,16 @@
 import { createContext, useCallback, useContext, useMemo, useReducer } from 'react'
 import classesConfig from '../config/classes.json'
-import { loadSession, saveSession, clearSession } from '../utils/storage'
+import {
+  loadSession,
+  saveSession,
+  clearSession,
+  loadClasses,
+  saveClasses,
+  clearClasses,
+  loadLang,
+  saveLang,
+} from '../utils/storage'
+import { translate } from '../i18n/translations'
 
 const AppContext = createContext(null)
 
@@ -11,12 +21,18 @@ function emptyHistory() {
 }
 
 const initialSession = loadSession()
+const storedClasses = loadClasses()
+const initialClasses = storedClasses && storedClasses.length > 0 ? storedClasses : classesConfig
+const storedLang = loadLang()
+const browserLang = typeof navigator !== 'undefined' && navigator.language?.startsWith('de') ? 'de' : 'en'
 
 const initialState = {
   studentId: initialSession?.studentId ?? null,
   treatment: initialSession?.treatment ?? null,
-  classes: classesConfig,
-  activeClassId: classesConfig[0]?.id ?? null,
+  lang: storedLang === 'de' || storedLang === 'en' ? storedLang : browserLang,
+  classes: initialClasses,
+  classesAreCustom: Boolean(storedClasses && storedClasses.length > 0),
+  activeClassId: initialClasses[0]?.id ?? null,
   images: [], // { id, name, url, width, height }
   currentImageId: null,
   shapesByImage: {}, // imageId -> Shape[]
@@ -34,6 +50,27 @@ function reducer(state, action) {
     case 'LOGOUT': {
       clearSession()
       return { ...state, studentId: null, treatment: null }
+    }
+    case 'UPDATE_STUDENT_ID': {
+      const studentId = action.studentId
+      saveSession({ studentId, treatment: state.treatment })
+      return { ...state, studentId }
+    }
+    case 'SET_LANG': {
+      saveLang(action.lang)
+      return { ...state, lang: action.lang }
+    }
+    case 'SET_CLASSES': {
+      saveClasses(action.classes)
+      const activeClassId = action.classes.some((c) => c.id === state.activeClassId)
+        ? state.activeClassId
+        : (action.classes[0]?.id ?? null)
+      return { ...state, classes: action.classes, classesAreCustom: true, activeClassId }
+    }
+    case 'RESET_CLASSES': {
+      clearClasses()
+      const activeClassId = classesConfig[0]?.id ?? null
+      return { ...state, classes: classesConfig, classesAreCustom: false, activeClassId }
     }
     case 'ADD_IMAGES': {
       const images = [...state.images, ...action.images]
@@ -164,10 +201,21 @@ export function AppProvider({ children }) {
     (shapeId, vertexIndex = null) => dispatch({ type: 'SELECT_SHAPE', shapeId, vertexIndex }),
     [],
   )
+  const updateStudentId = useCallback(
+    (studentId) => dispatch({ type: 'UPDATE_STUDENT_ID', studentId }),
+    [],
+  )
+  const setLang = useCallback((lang) => dispatch({ type: 'SET_LANG', lang }), [])
+  const setClasses = useCallback((classes) => dispatch({ type: 'SET_CLASSES', classes }), [])
+  const resetClasses = useCallback(() => dispatch({ type: 'RESET_CLASSES' }), [])
+
+  const lang = state.lang
+  const t = useCallback((key, vars) => translate(lang, key, vars), [lang])
 
   const value = useMemo(
     () => ({
       state,
+      t,
       login,
       logout,
       addImages,
@@ -178,8 +226,29 @@ export function AppProvider({ children }) {
       undo,
       redo,
       selectShape,
+      updateStudentId,
+      setLang,
+      setClasses,
+      resetClasses,
     }),
-    [state, login, logout, addImages, removeImage, selectImage, setActiveClass, setShapes, undo, redo, selectShape],
+    [
+      state,
+      t,
+      login,
+      logout,
+      addImages,
+      removeImage,
+      selectImage,
+      setActiveClass,
+      setShapes,
+      undo,
+      redo,
+      selectShape,
+      updateStudentId,
+      setLang,
+      setClasses,
+      resetClasses,
+    ],
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

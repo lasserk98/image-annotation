@@ -1,5 +1,11 @@
 {
-  "studyName": "Segmentation Annotation Study",
-  "instructions": "Draw a polygon around each structure you can identify, then assign it the correct class. Click to place points, click the first point again (or press Enter) to close the shape. Drag points to refine a shape after closing it.",
+  "studyName": {
+    "en": "Segmentation Annotation Study",
+    "de": "Segmentierungs-Annotationsstudie"
+  },
+  "instructions": {
+    "en": "Draw a polygon around each structure you can identify, then assign it the correct class. Click to place points, click the first point again (or press Enter) to close the shape. Drag points to refine a shape after closing it.",
+    "de": "Zeichne ein Polygon um jede erkennbare Struktur und weise ihr die richtige Klasse zu. Klicke, um Punkte zu setzen, und klicke erneut auf den ersten Punkt (oder drücke Enter), um die Form zu schließen. Nach dem Schließen kannst du die Punkte durch Ziehen verfeinern."
+  },
   "treatments": []
 }

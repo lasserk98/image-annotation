@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext'
 import { filesToImages } from '../utils/loadImages'
 
 export default function ImageGallery() {
-  const { state, addImages, removeImage, selectImage } = useApp()
+  const { state, addImages, removeImage, selectImage, t } = useApp()
   const { images, currentImageId, shapesByImage } = state
   const inputRef = useRef(null)
   const [isDragging, setDragging] = useState(false)
@@ -23,14 +23,14 @@ export default function ImageGallery() {
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between px-3 pt-3 pb-2">
         <h2 className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-          Images ({images.length})
+          {t('imageGallery.heading', { n: images.length })}
         </h2>
         <button
           onClick={() => inputRef.current?.click()}
           className="text-xs font-medium px-2 py-1 rounded-md transition hover:opacity-80"
           style={{ color: 'var(--accent)' }}
         >
-          + Add
+          {t('imageGallery.add')}
         </button>
         <input
           ref={inputRef}
@@ -65,8 +65,8 @@ export default function ImageGallery() {
               background: isDragging ? 'var(--accent-soft)' : 'transparent',
             }}
           >
-            <span>{loading ? 'Loading…' : 'Drop images here'}</span>
-            <span style={{ opacity: 0.7 }}>or click to browse</span>
+            <span>{loading ? t('imageGallery.loading') : t('imageGallery.dropHere')}</span>
+            <span style={{ opacity: 0.7 }}>{t('imageGallery.orBrowse')}</span>
           </button>
         ) : (
           <div className="space-y-1.5">
@@ -94,14 +94,14 @@ export default function ImageGallery() {
                       {img.name}
                     </p>
                     <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                      {count} shape{count === 1 ? '' : 's'}
+                      {count === 1 ? t('imageGallery.shapeCount', { n: count }) : t('imageGallery.shapeCountPlural', { n: count })}
                     </p>
                   </div>
                   {count > 0 && (
                     <span
                       className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                       style={{ background: 'var(--success)' }}
-                      title="Annotated"
+                      title={t('imageGallery.annotated')}
                     />
                   )}
                   <button
@@ -111,7 +111,7 @@ export default function ImageGallery() {
                     }}
                     className="opacity-0 group-hover:opacity-100 text-xs px-1 transition flex-shrink-0"
                     style={{ color: 'var(--text-muted)' }}
-                    title="Remove image"
+                    title={t('imageGallery.removeTitle')}
                   >
                     ✕
                   </button>

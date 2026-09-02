@@ -23,8 +23,5 @@ dist-ssr
 *.sln
 *.sw?
 
-# Real student roster — never commit actual student IDs. It's fetched at
-# runtime (not bundled), so a missing file here just falls back to "accept
-# any ID" rather than breaking the build. Create it locally before
-# deploying with a real roster: {"ids": ["s1234567", ...]}
-public/roster.json
+# Custom class list, loaded via the in-app "Load" button and persisted to
+# the browser's localStorage — not part of the repo.

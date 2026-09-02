@@ -1,46 +1,42 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
 
 export default function LoginScreen() {
-  const { login } = useApp()
+  const { login, t, state, setLang } = useApp()
   const [studentId, setStudentId] = useState('')
   const [treatment, setTreatment] = useState('')
   const [error, setError] = useState('')
-  const [rosterIds, setRosterIds] = useState(null) // null while loading
-
-  useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}roster.json`)
-      .then((res) => (res.ok ? res.json() : { ids: [] }))
-      .then((data) => setRosterIds(Array.isArray(data.ids) ? data.ids : []))
-      .catch(() => setRosterIds([]))
-  }, [])
 
   const urlTreatment = useMemo(
     () => new URLSearchParams(window.location.search).get('treatment'),
     [],
   )
   const lockedTreatment = Boolean(urlTreatment)
-  const rosterLoading = rosterIds === null
-  const hasRoster = rosterIds && rosterIds.length > 0
 
   function handleSubmit(e) {
     e.preventDefault()
     const id = studentId.trim()
     if (!id) {
-      setError('Please enter your student ID.')
-      return
-    }
-    if (hasRoster && !rosterIds.includes(id)) {
-      setError('That student ID was not found on the roster. Please double-check it.')
+      setError(t('login.errorEmpty'))
       return
     }
     const finalTreatment = urlTreatment || treatment || null
     login(id, finalTreatment)
   }
 
+  const studyName = typeof study.studyName === 'object' ? study.studyName[state.lang] : study.studyName
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--bg)' }}>
+    <div className="min-h-screen flex items-center justify-center px-4 relative" style={{ background: 'var(--bg)' }}>
+      <button
+        onClick={() => setLang(state.lang === 'en' ? 'de' : 'en')}
+        className="absolute top-4 right-4 text-xs font-medium px-2.5 py-1 rounded-md transition"
+        style={{ border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+        title={t('header.langTitle')}
+      >
+        {state.lang === 'en' ? 'DE' : 'EN'}
+      </button>
       <div
         className="w-full max-w-sm rounded-2xl p-8 shadow-xl"
         style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
@@ -59,16 +55,16 @@ export default function LoginScreen() {
           </svg>
         </div>
         <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text)' }}>
-          {study.studyName}
+          {studyName}
         </h1>
         <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
-          Enter your student ID to start annotating. Your images never leave your browser.
+          {t('login.subtitle')}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>
-              Student ID
+              {t('login.studentId')}
             </label>
             <input
               autoFocus
@@ -77,7 +73,7 @@ export default function LoginScreen() {
                 setStudentId(e.target.value)
                 setError('')
               }}
-              placeholder="e.g. s1234567"
+              placeholder={t('login.idPlaceholder')}
               className="w-full rounded-lg px-3 py-2 text-sm outline-none transition"
               style={{
                 background: 'var(--surface-2)',
@@ -90,7 +86,7 @@ export default function LoginScreen() {
           {!lockedTreatment && study.treatments?.length > 0 && (
             <div>
               <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>
-                Treatment
+                {t('login.treatment')}
               </label>
               <select
                 value={treatment}
@@ -102,10 +98,10 @@ export default function LoginScreen() {
                   color: 'var(--text)',
                 }}
               >
-                <option value="">Select treatment…</option>
-                {study.treatments.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+                <option value="">{t('login.selectTreatment')}</option>
+                {study.treatments.map((tr) => (
+                  <option key={tr} value={tr}>
+                    {tr}
                   </option>
                 ))}
               </select>
@@ -120,11 +116,10 @@ export default function LoginScreen() {
 
           <button
             type="submit"
-            disabled={rosterLoading}
-            className="w-full rounded-lg py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+            className="w-full rounded-lg py-2.5 text-sm font-medium text-white transition hover:opacity-90"
             style={{ background: 'var(--accent)' }}
           >
-            {rosterLoading ? 'Loading…' : 'Continue'}
+            {t('login.continue')}
           </button>
         </form>
       </div>

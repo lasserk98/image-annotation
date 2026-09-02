@@ -1,7 +1,7 @@
 import { useApp } from '../context/AppContext'
 
 export default function ShapeList() {
-  const { state, setShapes, selectShape } = useApp()
+  const { state, setShapes, selectShape, t } = useApp()
   const { classes, currentImageId, shapesByImage, selection } = state
   const shapes = (currentImageId && shapesByImage[currentImageId]) || []
   const classById = Object.fromEntries(classes.map((c) => [c.id, c]))
@@ -20,11 +20,11 @@ export default function ShapeList() {
   return (
     <div className="px-3 py-3 flex-1 overflow-y-auto scroll-thin" style={{ borderTop: '1px solid var(--border)' }}>
       <h2 className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>
-        Shapes ({shapes.length})
+        {t('shapeList.heading', { n: shapes.length })}
       </h2>
       {shapes.length === 0 ? (
         <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-          No shapes yet. Pick a class, then click on the image to start drawing.
+          {t('shapeList.empty')}
         </p>
       ) : (
         <div className="space-y-1">
@@ -68,7 +68,7 @@ export default function ShapeList() {
                   }}
                   className="opacity-0 group-hover:opacity-100 text-xs px-1 transition flex-shrink-0"
                   style={{ color: 'var(--text-muted)' }}
-                  title="Delete shape"
+                  title={t('shapeList.deleteTitle')}
                 >
                   ✕
                 </button>
