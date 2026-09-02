@@ -23,7 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
-# Real student roster — never commit actual student IDs. Copy
-# src/config/roster.example.json to src/config/roster.json and fill it
-# in locally before building/deploying.
-src/config/roster.json
+# Real student roster — never commit actual student IDs. It's fetched at
+# runtime (not bundled), so a missing file here just falls back to "accept
+# any ID" rather than breaking the build. Create it locally before
+# deploying with a real roster: {"ids": ["s1234567", ...]}
+public/roster.json

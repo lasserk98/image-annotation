@@ -48,8 +48,9 @@ removes the selected shape or vertex, `Esc` cancels the shape being drawn.
 
 ## Configuring the study
 
-All study configuration lives in `src/config/` and is bundled into the app at
-build time — edit these, then rebuild/redeploy.
+Class and study settings live in `src/config/` and are bundled into the app
+at build time — edit these, then rebuild/redeploy. The roster is handled
+differently (see below).
 
 ### `classes.json`
 
@@ -60,24 +61,29 @@ map to the first nine entries):
 [{ "id": "class-1", "name": "Class A", "color": "#ef4444" }]
 ```
 
-### `roster.json`
+### `public/roster.json`
 
 ```json
 { "ids": ["s1234567", "s7654321"] }
 ```
 
-If `ids` is non-empty, only listed student IDs can log in. Leave it as an
-empty array (`{"ids": []}`) to accept any non-empty ID with no validation —
-useful while testing, before you have a real roster.
+Unlike the other config files, the roster is loaded at *runtime* via
+`fetch('/roster.json')` rather than bundled at build time — so it lives in
+`public/` (served as a plain static file) and this file **doesn't exist in
+git at all** (it's gitignored). If `ids` is non-empty, only listed student
+IDs can log in; if the file is missing or `ids` is empty, any non-empty ID
+is accepted with no validation (the default, useful for testing).
 
-**This file is gitignored on purpose** — it's not tracked, so real student
-IDs never enter this public repo's git history. Edit
-`src/config/roster.json` locally with the real list before you build for
-deployment. Important caveat: this is a purely static app, so the roster you
-build with still ends up embedded in the shipped JavaScript bundle — keeping
-it out of git avoids it living in the repo's history/GitHub UI, but anyone
-who opens DevTools on the deployed site can still read the list. Fine for
-identifying participants, not a real secret.
+Because it's fetched at runtime instead of imported, a missing roster file
+never breaks the build — a fresh clone or CI checkout just falls back to
+"accept any ID". Create `public/roster.json` locally with the real list
+before building for a deployment that should enforce a roster; since it's
+gitignored, real student IDs never enter this public repo's git history.
+One caveat: this is a purely static app, so whatever is in `public/roster.json`
+at build/deploy time ships as a plain downloadable file on the live site —
+keeping it out of git avoids it living in the repo's history/GitHub UI, but
+anyone who inspects network requests on the deployed site can still read
+the list. Fine for identifying participants, not a real secret.
 
 ### `study.json`
 

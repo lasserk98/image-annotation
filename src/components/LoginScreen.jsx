@@ -1,6 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext'
-import roster from '../config/roster.json'
 import study from '../config/study.json'
 
 export default function LoginScreen() {
@@ -8,13 +7,22 @@ export default function LoginScreen() {
   const [studentId, setStudentId] = useState('')
   const [treatment, setTreatment] = useState('')
   const [error, setError] = useState('')
+  const [rosterIds, setRosterIds] = useState(null) // null while loading
+
+  useEffect(() => {
+    fetch(`${import.meta.env.BASE_URL}roster.json`)
+      .then((res) => (res.ok ? res.json() : { ids: [] }))
+      .then((data) => setRosterIds(Array.isArray(data.ids) ? data.ids : []))
+      .catch(() => setRosterIds([]))
+  }, [])
 
   const urlTreatment = useMemo(
     () => new URLSearchParams(window.location.search).get('treatment'),
     [],
   )
   const lockedTreatment = Boolean(urlTreatment)
-  const hasRoster = roster.ids && roster.ids.length > 0
+  const rosterLoading = rosterIds === null
+  const hasRoster = rosterIds && rosterIds.length > 0
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -23,7 +31,7 @@ export default function LoginScreen() {
       setError('Please enter your student ID.')
       return
     }
-    if (hasRoster && !roster.ids.includes(id)) {
+    if (hasRoster && !rosterIds.includes(id)) {
       setError('That student ID was not found on the roster. Please double-check it.')
       return
     }
@@ -112,10 +120,11 @@ export default function LoginScreen() {
 
           <button
             type="submit"
-            className="w-full rounded-lg py-2.5 text-sm font-medium text-white transition hover:opacity-90"
+            disabled={rosterLoading}
+            className="w-full rounded-lg py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
             style={{ background: 'var(--accent)' }}
           >
-            Continue
+            {rosterLoading ? 'Loading…' : 'Continue'}
           </button>
         </form>
       </div>
