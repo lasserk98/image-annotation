@@ -3,6 +3,8 @@ export const LANGUAGES = ['en', 'de']
 export const translations = {
   en: {
     'login.subtitle': 'Enter your student ID to start annotating. Your images never leave your browser.',
+    'login.name': 'Name',
+    'login.namePlaceholder': 'e.g. Jane Doe',
     'login.studentId': 'Student ID',
     'login.idPlaceholder': 'e.g. s1234567',
     'login.treatment': 'Treatment',
@@ -17,6 +19,8 @@ export const translations = {
     'header.logoutTitle': 'Switch student',
     'header.treatmentLabel': 'treatment {t}',
     'header.editIdTitle': 'Edit student ID',
+    'header.editNameTitle': 'Edit name',
+    'header.addName': '+ Add name',
     'header.usageTitle': 'Usage & shortcuts',
     'header.langTitle': 'Switch language',
 
@@ -83,6 +87,8 @@ export const translations = {
   },
   de: {
     'login.subtitle': 'Gib deine Matrikelnummer ein, um mit der Annotation zu beginnen. Deine Bilder verlassen niemals deinen Browser.',
+    'login.name': 'Name',
+    'login.namePlaceholder': 'z. B. Max Mustermann',
     'login.studentId': 'Matrikelnummer',
     'login.idPlaceholder': 'z. B. s1234567',
     'login.treatment': 'Treatment',
@@ -97,6 +103,8 @@ export const translations = {
     'header.logoutTitle': 'Nutzer wechseln',
     'header.treatmentLabel': 'Treatment {t}',
     'header.editIdTitle': 'Matrikelnummer bearbeiten',
+    'header.editNameTitle': 'Namen bearbeiten',
+    'header.addName': '+ Namen hinzufügen',
     'header.usageTitle': 'Anleitung & Kurzbefehle',
     'header.langTitle': 'Sprache wechseln',
 

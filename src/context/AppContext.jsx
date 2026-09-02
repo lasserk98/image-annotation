@@ -28,6 +28,7 @@ const browserLang = typeof navigator !== 'undefined' && navigator.language?.star
 
 const initialState = {
   studentId: initialSession?.studentId ?? null,
+  studentName: initialSession?.studentName ?? '',
   treatment: initialSession?.treatment ?? null,
   lang: storedLang === 'de' || storedLang === 'en' ? storedLang : browserLang,
   classes: initialClasses,
@@ -43,18 +44,27 @@ const initialState = {
 function reducer(state, action) {
   switch (action.type) {
     case 'LOGIN': {
-      const session = { studentId: action.studentId, treatment: action.treatment ?? null }
+      const session = {
+        studentId: action.studentId,
+        studentName: action.studentName ?? '',
+        treatment: action.treatment ?? null,
+      }
       saveSession(session)
       return { ...state, ...session }
     }
     case 'LOGOUT': {
       clearSession()
-      return { ...state, studentId: null, treatment: null }
+      return { ...state, studentId: null, studentName: '', treatment: null }
     }
     case 'UPDATE_STUDENT_ID': {
       const studentId = action.studentId
-      saveSession({ studentId, treatment: state.treatment })
+      saveSession({ studentId, studentName: state.studentName, treatment: state.treatment })
       return { ...state, studentId }
+    }
+    case 'UPDATE_STUDENT_NAME': {
+      const studentName = action.studentName
+      saveSession({ studentId: state.studentId, studentName, treatment: state.treatment })
+      return { ...state, studentName }
     }
     case 'SET_LANG': {
       saveLang(action.lang)
@@ -179,7 +189,8 @@ export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState)
 
   const login = useCallback(
-    (studentId, treatment) => dispatch({ type: 'LOGIN', studentId, treatment }),
+    (studentId, treatment, studentName) =>
+      dispatch({ type: 'LOGIN', studentId, treatment, studentName }),
     [],
   )
   const logout = useCallback(() => dispatch({ type: 'LOGOUT' }), [])
@@ -205,6 +216,10 @@ export function AppProvider({ children }) {
     (studentId) => dispatch({ type: 'UPDATE_STUDENT_ID', studentId }),
     [],
   )
+  const updateStudentName = useCallback(
+    (studentName) => dispatch({ type: 'UPDATE_STUDENT_NAME', studentName }),
+    [],
+  )
   const setLang = useCallback((lang) => dispatch({ type: 'SET_LANG', lang }), [])
   const setClasses = useCallback((classes) => dispatch({ type: 'SET_CLASSES', classes }), [])
   const resetClasses = useCallback(() => dispatch({ type: 'RESET_CLASSES' }), [])
@@ -227,6 +242,7 @@ export function AppProvider({ children }) {
       redo,
       selectShape,
       updateStudentId,
+      updateStudentName,
       setLang,
       setClasses,
       resetClasses,
@@ -245,6 +261,7 @@ export function AppProvider({ children }) {
       redo,
       selectShape,
       updateStudentId,
+      updateStudentName,
       setLang,
       setClasses,
       resetClasses,

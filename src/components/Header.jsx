@@ -4,32 +4,67 @@ import study from '../config/study.json'
 import { buildExportData, downloadJSON } from '../utils/export'
 import UsageModal from './UsageModal'
 
-export default function Header() {
-  const { state, logout, updateStudentId, setLang, t } = useApp()
-  const { studentId, treatment, images, shapesByImage, classes, lang } = state
-  const [showUsage, setShowUsage] = useState(false)
-  const [editingId, setEditingId] = useState(false)
-  const [idDraft, setIdDraft] = useState(studentId ?? '')
-  const idInputRef = useRef(null)
+function EditableField({ value, placeholder, title, className, onCommit }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value ?? '')
+  const inputRef = useRef(null)
 
   useEffect(() => {
-    if (editingId) idInputRef.current?.focus()
-  }, [editingId])
+    if (editing) inputRef.current?.focus()
+  }, [editing])
+
+  function commit() {
+    onCommit(draft.trim())
+    setEditing(false)
+  }
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit()
+          if (e.key === 'Escape') {
+            setDraft(value ?? '')
+            setEditing(false)
+          }
+        }}
+        className={`${className} rounded px-1 outline-none w-28`}
+        style={{ background: 'var(--surface-2)', border: '1px solid var(--accent)', color: 'var(--text)' }}
+      />
+    )
+  }
+
+  return (
+    <button
+      onClick={() => {
+        setDraft(value ?? '')
+        setEditing(true)
+      }}
+      className={className}
+      style={{ color: value ? 'var(--text)' : 'var(--accent)' }}
+      title={title}
+    >
+      {value ? `${value} ✎` : placeholder}
+    </button>
+  )
+}
+
+export default function Header() {
+  const { state, logout, updateStudentId, updateStudentName, setLang, t } = useApp()
+  const { studentId, studentName, treatment, images, shapesByImage, classes, lang } = state
+  const [showUsage, setShowUsage] = useState(false)
 
   const annotatedCount = images.filter((img) => (shapesByImage[img.id]?.length ?? 0) > 0).length
   const studyName = typeof study.studyName === 'object' ? study.studyName[lang] : study.studyName
 
   function handleExport() {
-    const data = buildExportData({ studentId, treatment, images, shapesByImage, classes })
+    const data = buildExportData({ studentId, studentName, treatment, images, shapesByImage, classes })
     const stamp = new Date().toISOString().replace(/[:.]/g, '-')
     downloadJSON(`annotations_${studentId}_${stamp}.json`, data)
-  }
-
-  function commitIdEdit() {
-    const trimmed = idDraft.trim()
-    if (trimmed) updateStudentId(trimmed)
-    else setIdDraft(studentId ?? '')
-    setEditingId(false)
   }
 
   return (
@@ -77,35 +112,20 @@ export default function Header() {
 
       <div className="flex items-center gap-2 pl-2 ml-1" style={{ borderLeft: '1px solid var(--border)' }}>
         <div className="text-right leading-tight">
-          {editingId ? (
-            <input
-              ref={idInputRef}
-              value={idDraft}
-              onChange={(e) => setIdDraft(e.target.value)}
-              onBlur={commitIdEdit}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') commitIdEdit()
-                if (e.key === 'Escape') {
-                  setIdDraft(studentId ?? '')
-                  setEditingId(false)
-                }
-              }}
-              className="text-xs font-medium text-right rounded px-1 outline-none w-24"
-              style={{ background: 'var(--surface-2)', border: '1px solid var(--accent)', color: 'var(--text)' }}
-            />
-          ) : (
-            <button
-              onClick={() => {
-                setIdDraft(studentId ?? '')
-                setEditingId(true)
-              }}
-              className="text-xs font-medium"
-              style={{ color: 'var(--text)' }}
-              title={t('header.editIdTitle')}
-            >
-              {studentId} ✎
-            </button>
-          )}
+          <EditableField
+            value={studentName}
+            placeholder={t('header.addName')}
+            title={t('header.editNameTitle')}
+            className="text-xs font-medium text-right block"
+            onCommit={updateStudentName}
+          />
+          <EditableField
+            value={studentId}
+            placeholder={t('login.idPlaceholder')}
+            title={t('header.editIdTitle')}
+            className="text-[11px] text-right block"
+            onCommit={(v) => v && updateStudentId(v)}
+          />
           {treatment && (
             <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
               {t('header.treatmentLabel', { t: treatment })}
