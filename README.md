@@ -125,18 +125,27 @@ ground-truth masks of the same images.
 
 This repo is public and deploys automatically via GitHub Pages: every push
 to `main` runs `.github/workflows/deploy.yml`, which builds the app and
-publishes `dist/`, currently reachable at both:
-
-- **https://annotate.umr-hno.de/** (custom domain, via the `public/CNAME` file)
-- **https://lasserk98.github.io/image-annotation/** (default Pages URL)
-
-No server code or database is required for the default "download only"
+publishes `dist/` to **https://lasserk98.github.io/image-annotation/**. No
+server code or database is required for the default "download only"
 workflow this tool implements — check progress under the repo's **Actions**
-tab, and DNS/HTTPS status under **Settings → Pages**. To point at a
-different custom domain instead, edit `public/CNAME` and update the DNS
-record accordingly (a `CNAME` record to `lasserk98.github.io` for a
-subdomain, or `A` records to GitHub's IPs for an apex domain); to drop the
-custom domain entirely, delete `public/CNAME`.
+tab.
+
+### Using a custom domain instead
+
+Add a `public/CNAME` file containing just the domain (e.g.
+`annotate.example.com`), then point its DNS at GitHub: a `CNAME` record to
+`lasserk98.github.io` for a subdomain, or `A` records to GitHub's IPs for an
+apex domain. You'll also need to register the domain on the Pages side —
+`gh api -X PUT repos/lasserk98/image-annotation/pages -f cname=your.domain`
+— before pushing the `public/CNAME` file. **Do this DNS step first, or push
+the CNAME registration only once DNS is confirmed working** — GitHub starts
+redirecting the default `github.io` URL to the custom domain as soon as
+it's registered, which breaks the site for everyone until that domain
+actually resolves. To go back to the plain `github.io` URL, delete
+`public/CNAME`, push, and run
+`gh api -X DELETE repos/lasserk98/image-annotation/pages` followed by
+`gh api -X POST repos/lasserk98/image-annotation/pages -f build_type=workflow`
+to clear it (a plain `PATCH` with an empty cname doesn't fully clear it).
 
 ## Privacy
 
