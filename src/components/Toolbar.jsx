@@ -1,6 +1,10 @@
 import { useApp } from '../context/AppContext'
 
-export default function Toolbar({ mode, onToggleDraw, onCancelDraw, scale, onZoom, onFit }) {
+function Divider() {
+  return <div className="w-px h-5 mx-1 flex-shrink-0" style={{ background: 'var(--border)' }} />
+}
+
+export default function Toolbar({ mode, onToggleDraw, onCancelDraw, scale, onZoom, onFit, activeClass }) {
   const { state, undo, redo, selectImage, t } = useApp()
   const { images, currentImageId, historyByImage } = state
   const index = images.findIndex((i) => i.id === currentImageId)
@@ -13,7 +17,7 @@ export default function Toolbar({ mode, onToggleDraw, onCancelDraw, scale, onZoo
 
   return (
     <div
-      className="flex items-center gap-1.5 px-3 py-2 flex-shrink-0"
+      className="flex items-center gap-1.5 px-3 py-2 flex-shrink-0 overflow-x-auto scroll-thin"
       style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}
     >
       <button
@@ -21,10 +25,14 @@ export default function Toolbar({ mode, onToggleDraw, onCancelDraw, scale, onZoo
         disabled={index <= 0}
         className="toolbar-btn"
         title={t('toolbar.prevTitle')}
+        aria-label={t('toolbar.prevTitle')}
       >
         ‹
       </button>
-      <span className="text-xs px-1 tabular-nums" style={{ color: 'var(--text-muted)' }}>
+      <span
+        className="text-xs px-1 tabular-nums flex-shrink-0"
+        style={{ color: 'var(--text-muted)' }}
+      >
         {images.length ? `${index + 1} / ${images.length}` : '0 / 0'}
       </span>
       <button
@@ -32,17 +40,18 @@ export default function Toolbar({ mode, onToggleDraw, onCancelDraw, scale, onZoo
         disabled={index >= images.length - 1}
         className="toolbar-btn"
         title={t('toolbar.nextTitle')}
+        aria-label={t('toolbar.nextTitle')}
       >
         ›
       </button>
 
-      <div className="w-px h-5 mx-1" style={{ background: 'var(--border)' }} />
+      <Divider />
 
       {mode === 'draw' ? (
         <>
           <span
-            className="text-xs font-medium px-2 py-1 rounded-md"
-            style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
+            className="text-xs font-medium px-2 py-1 rounded-md whitespace-nowrap"
+            style={{ background: 'var(--accent-soft-strong)', color: 'var(--accent-ink)' }}
           >
             {t('toolbar.drawingHint')}
           </span>
@@ -56,24 +65,67 @@ export default function Toolbar({ mode, onToggleDraw, onCancelDraw, scale, onZoo
         </button>
       )}
 
-      <div className="w-px h-5 mx-1" style={{ background: 'var(--border)' }} />
+      {/* Which class the next shape gets is otherwise only visible in the left
+          panel, which can be collapsed — surface it next to the draw button. */}
+      {activeClass && (
+        <span
+          className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-md min-w-0"
+          style={{ background: 'var(--surface-2)', color: 'var(--text)' }}
+          title={t('toolbar.activeClass')}
+        >
+          <span
+            className="swatch"
+            style={{ background: activeClass.color, width: 9, height: 9 }}
+          />
+          <span className="truncate" style={{ maxWidth: 150 }}>
+            {activeClass.name}
+          </span>
+        </span>
+      )}
 
-      <button onClick={() => undo(currentImageId)} disabled={history.past.length === 0} className="toolbar-btn" title={t('toolbar.undoTitle')}>
+      <Divider />
+
+      <button
+        onClick={() => undo(currentImageId)}
+        disabled={history.past.length === 0}
+        className="toolbar-btn"
+        title={t('toolbar.undoTitle')}
+        aria-label={t('toolbar.undoTitle')}
+      >
         ↺
       </button>
-      <button onClick={() => redo(currentImageId)} disabled={history.future.length === 0} className="toolbar-btn" title={t('toolbar.redoTitle')}>
+      <button
+        onClick={() => redo(currentImageId)}
+        disabled={history.future.length === 0}
+        className="toolbar-btn"
+        title={t('toolbar.redoTitle')}
+        aria-label={t('toolbar.redoTitle')}
+      >
         ↻
       </button>
 
-      <div className="flex-1" />
+      <div className="flex-1 min-w-[8px]" />
 
-      <button onClick={() => onZoom(1 / 1.2)} className="toolbar-btn" title={t('toolbar.zoomOut')}>
+      <button
+        onClick={() => onZoom(1 / 1.2)}
+        className="toolbar-btn"
+        title={t('toolbar.zoomOut')}
+        aria-label={t('toolbar.zoomOut')}
+      >
         −
       </button>
-      <span className="text-xs w-10 text-center tabular-nums" style={{ color: 'var(--text-muted)' }}>
+      <span
+        className="text-xs w-11 text-center tabular-nums flex-shrink-0"
+        style={{ color: 'var(--text-muted)' }}
+      >
         {Math.round(scale * 100)}%
       </span>
-      <button onClick={() => onZoom(1.2)} className="toolbar-btn" title={t('toolbar.zoomIn')}>
+      <button
+        onClick={() => onZoom(1.2)}
+        className="toolbar-btn"
+        title={t('toolbar.zoomIn')}
+        aria-label={t('toolbar.zoomIn')}
+      >
         +
       </button>
       <button onClick={onFit} className="toolbar-btn" title={t('toolbar.fitTitle')}>

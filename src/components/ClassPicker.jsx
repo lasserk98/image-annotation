@@ -1,13 +1,37 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { parseClasses } from '../utils/classes'
+
+// Above this many classes the list stops being scannable by eye, so a filter
+// box appears. The sample surgical class list has 34 entries.
+const FILTER_THRESHOLD = 8
+
+// Shared so "no image selected" doesn't hand the memos below a fresh array on
+// every render.
+const NO_SHAPES = []
 
 export default function ClassPicker() {
   const { state, setActiveClass, setClasses, resetClasses, t } = useApp()
   const { classes, activeClassId, currentImageId, shapesByImage, classesAreCustom } = state
-  const shapes = (currentImageId && shapesByImage[currentImageId]) || []
+  const shapes = (currentImageId && shapesByImage[currentImageId]) || NO_SHAPES
   const inputRef = useRef(null)
   const [error, setError] = useState('')
+  const [query, setQuery] = useState('')
+
+  const countByClass = useMemo(() => {
+    const counts = {}
+    for (const s of shapes) counts[s.classId] = (counts[s.classId] ?? 0) + 1
+    return counts
+  }, [shapes])
+
+  // Keep the original index alongside each entry: the 1–9 keyboard shortcuts
+  // address the unfiltered list, so the hint must not renumber while filtering.
+  const visible = useMemo(() => {
+    const indexed = classes.map((cls, index) => ({ cls, index }))
+    const q = query.trim().toLowerCase()
+    if (!q) return indexed
+    return indexed.filter(({ cls }) => cls.name.toLowerCase().includes(q))
+  }, [classes, query])
 
   async function handleFile(file) {
     setError('')
@@ -15,98 +39,113 @@ export default function ClassPicker() {
       const text = await file.text()
       const parsed = parseClasses(JSON.parse(text))
       setClasses(parsed)
+      setQuery('')
     } catch (err) {
       setError(err.message || 'Could not read that file.')
     }
   }
 
   return (
-    <div className="px-3 py-3" style={{ borderTop: '1px solid var(--border)' }}>
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-          {t('classPicker.heading')}
-          {classesAreCustom && (
-            <span className="ml-1.5 normal-case font-normal" style={{ color: 'var(--accent)' }}>
-              ({t('classPicker.custom')})
-            </span>
-          )}
-        </h2>
-        <div className="flex items-center gap-2">
-          {classesAreCustom && (
-            <button
-              onClick={resetClasses}
-              className="text-xs font-medium"
-              style={{ color: 'var(--text-muted)' }}
-              title={t('classPicker.resetTitle')}
-            >
-              {t('classPicker.reset')}
-            </button>
-          )}
-          <button
-            onClick={() => inputRef.current?.click()}
-            className="text-xs font-medium"
-            style={{ color: 'var(--accent)' }}
-            title={t('classPicker.loadTitle')}
+    <>
+      <div className="panel-header">
+        <span className="panel-title">{t('classPicker.heading')}</span>
+        <span className="count-badge">{classes.length}</span>
+        {classesAreCustom && (
+          <span
+            className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+            style={{ background: 'var(--accent-soft-strong)', color: 'var(--accent-ink)' }}
           >
-            {t('classPicker.load')}
+            {t('classPicker.custom')}
+          </span>
+        )}
+        <span className="flex-1" />
+        {classesAreCustom && (
+          <button
+            onClick={resetClasses}
+            className="link-btn link-btn-muted"
+            title={t('classPicker.resetTitle')}
+          >
+            {t('classPicker.reset')}
           </button>
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".json,application/json"
-            hidden
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) handleFile(file)
-              e.target.value = ''
-            }}
-          />
-        </div>
+        )}
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="link-btn"
+          title={t('classPicker.loadTitle')}
+        >
+          {t('classPicker.load')}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".json,application/json"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) handleFile(file)
+            e.target.value = ''
+          }}
+        />
       </div>
 
+      {classes.length > FILTER_THRESHOLD && (
+        <div className="px-3 py-2 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t('classPicker.filterPlaceholder')}
+            className="field field-sm"
+            aria-label={t('classPicker.filterPlaceholder')}
+          />
+        </div>
+      )}
+
       {error && (
-        <p className="text-xs mb-2" style={{ color: 'var(--danger)' }}>
+        <p
+          className="text-xs px-3 py-2 flex-shrink-0"
+          style={{ color: 'var(--danger)', background: 'var(--danger-soft)' }}
+          role="alert"
+        >
           {error}
         </p>
       )}
 
-      <div className="space-y-1">
-        {classes.map((cls, i) => {
-          const active = cls.id === activeClassId
-          const count = shapes.filter((s) => s.classId === cls.id).length
-          return (
-            <button
-              key={cls.id}
-              onClick={() => setActiveClass(cls.id)}
-              className="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition"
-              style={{
-                background: active ? 'var(--accent-soft)' : 'transparent',
-                border: `1px solid ${active ? 'var(--accent)' : 'transparent'}`,
-                color: 'var(--text)',
-              }}
-            >
-              <span
-                className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ background: cls.color }}
-              />
-              <span className="flex-1 text-left truncate">{cls.name}</span>
-              {count > 0 && (
-                <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                  {count}
-                </span>
-              )}
-              {i < 9 && (
-                <span
-                  className="text-[10px] rounded px-1 flex-shrink-0"
-                  style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}
+      <div className="panel-body" aria-label={t('classPicker.heading')}>
+        {visible.length === 0 ? (
+          <p className="panel-empty">{t('classPicker.noMatches', { q: query.trim() })}</p>
+        ) : (
+          <div className="space-y-0.5">
+            {visible.map(({ cls, index }) => {
+              const active = cls.id === activeClassId
+              const count = countByClass[cls.id] ?? 0
+              return (
+                <button
+                  key={cls.id}
+                  onClick={() => setActiveClass(cls.id)}
+                  className="list-row"
+                  data-active={active}
+                  aria-pressed={active}
+                  title={active ? t('classPicker.activeTitle') : cls.name}
                 >
-                  {i + 1}
-                </span>
-              )}
-            </button>
-          )
-        })}
+                  <span
+                    className="swatch"
+                    style={{ background: cls.color, width: 12, height: 12 }}
+                  />
+                  <span
+                    className="flex-1 min-w-0 truncate text-[13px]"
+                    style={{ fontWeight: active ? 600 : 400 }}
+                  >
+                    {cls.name}
+                  </span>
+                  {count > 0 && <span className="count-badge">{count}</span>}
+                  {index < 9 && <span className="kbd-hint">{index + 1}</span>}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
-    </div>
+    </>
   )
 }

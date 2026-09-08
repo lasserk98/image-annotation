@@ -27,7 +27,9 @@ const storedLang = loadLang()
 const browserLang = typeof navigator !== 'undefined' && navigator.language?.startsWith('de') ? 'de' : 'en'
 
 const initialState = {
-  studentId: initialSession?.studentId ?? null,
+  // `studentId` is the pre-rename key: read it as a fallback so a session
+  // stored by an older build doesn't silently log the participant out.
+  participantId: initialSession?.participantId ?? initialSession?.studentId ?? null,
   treatment: initialSession?.treatment ?? null,
   lang: storedLang === 'de' || storedLang === 'en' ? storedLang : browserLang,
   classes: initialClasses,
@@ -38,23 +40,26 @@ const initialState = {
   shapesByImage: {}, // imageId -> Shape[]
   historyByImage: {}, // imageId -> { past: Shape[][], future: Shape[][] }
   selection: { shapeId: null, vertexIndex: null },
+  // Pointer-driven, not persisted: lets the instance list and the canvas
+  // highlight the same shape from either side.
+  hoveredShapeId: null,
 }
 
 function reducer(state, action) {
   switch (action.type) {
     case 'LOGIN': {
-      const session = { studentId: action.studentId, treatment: action.treatment ?? null }
+      const session = { participantId: action.participantId, treatment: action.treatment ?? null }
       saveSession(session)
       return { ...state, ...session }
     }
     case 'LOGOUT': {
       clearSession()
-      return { ...state, studentId: null, treatment: null }
+      return { ...state, participantId: null, treatment: null }
     }
-    case 'UPDATE_STUDENT_ID': {
-      const studentId = action.studentId
-      saveSession({ studentId, treatment: state.treatment })
-      return { ...state, studentId }
+    case 'UPDATE_PARTICIPANT_ID': {
+      const participantId = action.participantId
+      saveSession({ participantId, treatment: state.treatment })
+      return { ...state, participantId }
     }
     case 'SET_LANG': {
       saveLang(action.lang)
@@ -105,6 +110,7 @@ function reducer(state, action) {
         ...state,
         currentImageId: action.imageId,
         selection: { shapeId: null, vertexIndex: null },
+        hoveredShapeId: null,
       }
     case 'SET_ACTIVE_CLASS':
       return { ...state, activeClassId: action.classId }
@@ -144,6 +150,7 @@ function reducer(state, action) {
           },
         },
         selection: { shapeId: null, vertexIndex: null },
+        hoveredShapeId: null,
       }
     }
     case 'REDO': {
@@ -163,6 +170,7 @@ function reducer(state, action) {
           },
         },
         selection: { shapeId: null, vertexIndex: null },
+        hoveredShapeId: null,
       }
     }
     case 'SELECT_SHAPE':
@@ -170,6 +178,9 @@ function reducer(state, action) {
         ...state,
         selection: { shapeId: action.shapeId, vertexIndex: action.vertexIndex ?? null },
       }
+    case 'HOVER_SHAPE':
+      if (state.hoveredShapeId === action.shapeId) return state
+      return { ...state, hoveredShapeId: action.shapeId }
     default:
       return state
   }
@@ -179,7 +190,7 @@ export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState)
 
   const login = useCallback(
-    (studentId, treatment) => dispatch({ type: 'LOGIN', studentId, treatment }),
+    (participantId, treatment) => dispatch({ type: 'LOGIN', participantId, treatment }),
     [],
   )
   const logout = useCallback(() => dispatch({ type: 'LOGOUT' }), [])
@@ -201,8 +212,9 @@ export function AppProvider({ children }) {
     (shapeId, vertexIndex = null) => dispatch({ type: 'SELECT_SHAPE', shapeId, vertexIndex }),
     [],
   )
-  const updateStudentId = useCallback(
-    (studentId) => dispatch({ type: 'UPDATE_STUDENT_ID', studentId }),
+  const hoverShape = useCallback((shapeId) => dispatch({ type: 'HOVER_SHAPE', shapeId }), [])
+  const updateParticipantId = useCallback(
+    (participantId) => dispatch({ type: 'UPDATE_PARTICIPANT_ID', participantId }),
     [],
   )
   const setLang = useCallback((lang) => dispatch({ type: 'SET_LANG', lang }), [])
@@ -226,7 +238,8 @@ export function AppProvider({ children }) {
       undo,
       redo,
       selectShape,
-      updateStudentId,
+      hoverShape,
+      updateParticipantId,
       setLang,
       setClasses,
       resetClasses,
@@ -244,7 +257,8 @@ export function AppProvider({ children }) {
       undo,
       redo,
       selectShape,
-      updateStudentId,
+      hoverShape,
+      updateParticipantId,
       setLang,
       setClasses,
       resetClasses,

@@ -11,11 +11,21 @@ const SHORTCUT_KEYS = [
   { key: 'Ctrl+Z', labelKey: 'usage.shortcut.undo' },
   { key: 'Ctrl+Shift+Z', labelKey: 'usage.shortcut.redo' },
   { key: '← →', labelKey: 'usage.shortcut.arrows' },
+  { key: 'Scroll', labelKey: 'usage.shortcut.wheel' },
+  { key: 'Drag / Alt+drag', labelKey: 'usage.shortcut.pan' },
   { key: 'Double-click vertex', labelKey: 'usage.shortcut.dblClickVertex' },
   { key: 'Double-click edge', labelKey: 'usage.shortcut.dblClickEdge' },
 ]
 
-const STEP_KEYS = ['usage.step1', 'usage.step2', 'usage.step3', 'usage.step4', 'usage.step5', 'usage.step6']
+const STEP_KEYS = [
+  'usage.step1',
+  'usage.step2',
+  'usage.step3',
+  'usage.step4',
+  'usage.step5',
+  'usage.step6',
+  'usage.step7',
+]
 
 export default function UsageModal({ onClose }) {
   const { t, state } = useApp()
@@ -46,8 +56,13 @@ export default function UsageModal({ onClose }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg max-h-[85vh] overflow-y-auto scroll-thin rounded-2xl shadow-xl p-6"
-        style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
+        className="w-full max-w-lg max-h-[85vh] overflow-y-auto scroll-thin rounded-2xl p-6"
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          color: 'var(--text)',
+          boxShadow: 'var(--shadow-lg)',
+        }}
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold">{t('usage.title')}</h2>
@@ -88,8 +103,12 @@ export default function UsageModal({ onClose }) {
             {SHORTCUT_KEYS.map(({ key, labelKey }) => (
               <div key={key} className="flex items-center gap-3 text-sm py-0.5">
                 <code
-                  className="text-[11px] px-1.5 py-0.5 rounded flex-shrink-0 min-w-[7.5rem] text-center"
-                  style={{ background: 'var(--surface-2)', color: 'var(--text)' }}
+                  className="text-[11px] px-1.5 py-0.5 rounded flex-shrink-0 min-w-[8.5rem] text-center"
+                  style={{
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text)',
+                  }}
                 >
                   {key}
                 </code>

@@ -4,15 +4,17 @@ import { polygonArea } from './geometry'
 // are recorded in original-image pixel space so they can be compared
 // directly against ground-truth masks regardless of how the browser
 // happened to render/zoom the image during annotation.
-export function buildExportData({ studentId, treatment, images, shapesByImage, classes }) {
+// schemaVersion 2 renamed the top-level `studentId` field to `participantId`;
+// nothing else about the payload changed.
+export function buildExportData({ participantId, treatment, images, shapesByImage, classes }) {
   const classById = Object.fromEntries(classes.map((c) => [c.id, c]))
 
   return {
-    studentId,
+    participantId,
     treatment: treatment || null,
     exportedAt: new Date().toISOString(),
     tool: 'image-annotation',
-    schemaVersion: 1,
+    schemaVersion: 2,
     images: images.map((img) => {
       const shapes = shapesByImage[img.id] || []
       return {

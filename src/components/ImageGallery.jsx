@@ -20,16 +20,12 @@ export default function ImageGallery() {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-3 pt-3 pb-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-          {t('imageGallery.heading', { n: images.length })}
-        </h2>
-        <button
-          onClick={() => inputRef.current?.click()}
-          className="text-xs font-medium px-2 py-1 rounded-md transition hover:opacity-80"
-          style={{ color: 'var(--accent)' }}
-        >
+    <>
+      <div className="panel-header">
+        <span className="panel-title">{t('imageGallery.heading')}</span>
+        <span className="count-badge">{images.length}</span>
+        <span className="flex-1" />
+        <button onClick={() => inputRef.current?.click()} className="link-btn">
           {t('imageGallery.add')}
         </button>
         <input
@@ -43,7 +39,7 @@ export default function ImageGallery() {
       </div>
 
       <div
-        className="flex-1 overflow-y-auto scroll-thin px-2 pb-2"
+        className="panel-body"
         onDragOver={(e) => {
           e.preventDefault()
           setDragging(true)
@@ -54,22 +50,30 @@ export default function ImageGallery() {
           setDragging(false)
           if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files)
         }}
+        style={isDragging ? { background: 'var(--accent-soft)' } : undefined}
       >
         {images.length === 0 ? (
           <button
             onClick={() => inputRef.current?.click()}
-            className="w-full h-32 rounded-xl flex flex-col items-center justify-center gap-1.5 text-xs transition"
+            className="w-full rounded-xl flex flex-col items-center justify-center gap-1 text-xs transition"
             style={{
-              border: `1.5px dashed ${isDragging ? 'var(--accent)' : 'var(--border)'}`,
+              minHeight: 104,
+              padding: 12,
+              border: `1.5px dashed ${isDragging ? 'var(--accent)' : 'var(--border-strong)'}`,
               color: 'var(--text-muted)',
-              background: isDragging ? 'var(--accent-soft)' : 'transparent',
+              background: 'transparent',
             }}
           >
-            <span>{loading ? t('imageGallery.loading') : t('imageGallery.dropHere')}</span>
-            <span style={{ opacity: 0.7 }}>{t('imageGallery.orBrowse')}</span>
+            <span style={{ fontSize: 18, lineHeight: 1 }} aria-hidden="true">
+              ⤓
+            </span>
+            <span style={{ fontWeight: 600 }}>
+              {loading ? t('imageGallery.loading') : t('imageGallery.dropHere')}
+            </span>
+            <span style={{ color: 'var(--text-faint)' }}>{t('imageGallery.orBrowse')}</span>
           </button>
         ) : (
-          <div className="space-y-1.5">
+          <div className="space-y-0.5">
             {images.map((img) => {
               const count = shapesByImage[img.id]?.length ?? 0
               const active = img.id === currentImageId
@@ -77,30 +81,35 @@ export default function ImageGallery() {
                 <div
                   key={img.id}
                   onClick={() => selectImage(img.id)}
-                  className="group flex items-center gap-2 rounded-lg p-1.5 cursor-pointer transition"
-                  style={{
-                    background: active ? 'var(--accent-soft)' : 'transparent',
-                    border: `1px solid ${active ? 'var(--accent)' : 'transparent'}`,
-                  }}
+                  className="group list-row"
+                  data-active={active}
+                  style={{ cursor: 'pointer', padding: 5 }}
+                  aria-current={active ? 'true' : undefined}
                 >
                   <img
                     src={img.url}
                     alt=""
-                    className="w-10 h-10 rounded-md object-cover flex-shrink-0"
-                    style={{ border: '1px solid var(--border)' }}
+                    className="rounded-md object-cover flex-shrink-0"
+                    style={{ width: 38, height: 38, border: '1px solid var(--border)' }}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium truncate" style={{ color: 'var(--text)' }}>
+                    <p
+                      className="text-[12px] truncate"
+                      style={{ color: 'var(--text)', fontWeight: active ? 600 : 400 }}
+                      title={img.name}
+                    >
                       {img.name}
                     </p>
                     <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                      {count === 1 ? t('imageGallery.shapeCount', { n: count }) : t('imageGallery.shapeCountPlural', { n: count })}
+                      {count === 1
+                        ? t('imageGallery.shapeCount', { n: count })
+                        : t('imageGallery.shapeCountPlural', { n: count })}
                     </p>
                   </div>
                   {count > 0 && (
                     <span
-                      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                      style={{ background: 'var(--success)' }}
+                      className="swatch"
+                      style={{ background: 'var(--success)', width: 6, height: 6 }}
                       title={t('imageGallery.annotated')}
                     />
                   )}
@@ -109,9 +118,9 @@ export default function ImageGallery() {
                       e.stopPropagation()
                       removeImage(img.id)
                     }}
-                    className="opacity-0 group-hover:opacity-100 text-xs px-1 transition flex-shrink-0"
-                    style={{ color: 'var(--text-muted)' }}
+                    className="row-action"
                     title={t('imageGallery.removeTitle')}
+                    aria-label={t('imageGallery.removeTitle')}
                   >
                     ✕
                   </button>
@@ -121,6 +130,6 @@ export default function ImageGallery() {
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }
