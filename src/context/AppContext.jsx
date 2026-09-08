@@ -10,6 +10,7 @@ import {
   loadLang,
   saveLang,
 } from '../utils/storage'
+import { sortClassesByName } from '../utils/classes'
 import { translate } from '../i18n/translations'
 
 const AppContext = createContext(null)
@@ -22,7 +23,12 @@ function emptyHistory() {
 
 const initialSession = loadSession()
 const storedClasses = loadClasses()
-const initialClasses = storedClasses && storedClasses.length > 0 ? storedClasses : classesConfig
+// Every class list is sorted on the way in — whether it came from the bundled
+// config or a JSON file a participant loaded — so the menu, the instance
+// groups and the 1-9 shortcuts all share one alphabetical order.
+const initialClasses = sortClassesByName(
+  storedClasses && storedClasses.length > 0 ? storedClasses : classesConfig,
+)
 const storedLang = loadLang()
 const browserLang = typeof navigator !== 'undefined' && navigator.language?.startsWith('de') ? 'de' : 'en'
 
@@ -66,16 +72,18 @@ function reducer(state, action) {
       return { ...state, lang: action.lang }
     }
     case 'SET_CLASSES': {
-      saveClasses(action.classes)
-      const activeClassId = action.classes.some((c) => c.id === state.activeClassId)
+      const classes = sortClassesByName(action.classes)
+      saveClasses(classes)
+      const activeClassId = classes.some((c) => c.id === state.activeClassId)
         ? state.activeClassId
-        : (action.classes[0]?.id ?? null)
-      return { ...state, classes: action.classes, classesAreCustom: true, activeClassId }
+        : (classes[0]?.id ?? null)
+      return { ...state, classes, classesAreCustom: true, activeClassId }
     }
     case 'RESET_CLASSES': {
       clearClasses()
-      const activeClassId = classesConfig[0]?.id ?? null
-      return { ...state, classes: classesConfig, classesAreCustom: false, activeClassId }
+      const classes = sortClassesByName(classesConfig)
+      const activeClassId = classes[0]?.id ?? null
+      return { ...state, classes, classesAreCustom: false, activeClassId }
     }
     case 'ADD_IMAGES': {
       const images = [...state.images, ...action.images]

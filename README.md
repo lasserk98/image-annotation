@@ -39,8 +39,9 @@ npm run preview # serve the production build locally to sanity-check it
    against, but it's editable later via the ✎ next to Export in case of a typo).
 2. Drag & drop, or click "+ Add", to load one or more local images. Images are
    read straight into the browser (as object URLs) and are never uploaded.
-3. Pick a class in the left panel (or press `1`-`9`). Long class lists scroll
-   and gain a filter box; the active class is echoed next to **+ New shape**.
+3. Pick a class in the left panel (or press `1`-`9` for the first nine).
+   Classes are listed alphabetically; long lists scroll and gain a filter box,
+   and the active class is echoed next to **+ New shape**.
 4. Click **+ New shape** (or press `N`), then click points on the image to
    place a polygon outline. Click back on the first point (or press `Enter`)
    to close it.
@@ -77,6 +78,13 @@ reloads until "Reset" is clicked — handy for handing out a study-specific
 class list as a plain file alongside the images, without needing a rebuild.
 `samples/classes-ci-surgery-de.json` is a real 34-class example (German
 cochlear implant surgery landmarks) you can use to try this out.
+
+Whichever list is in use, the app **sorts it alphabetically by name** before
+displaying it, so the order in the file only affects which palette colour each
+name is assigned. The comparison is case- and accent-insensitive (`Ä` sorts
+with `A`) and digit-aware (`Class 2` before `Class 10`), and it is pinned to a
+single locale so every participant gets the same order — and therefore the same
+`1`-`9` shortcut mapping — regardless of their browser's language settings.
 
 ### `src/config/study.json` — study name, instructions, treatments
 

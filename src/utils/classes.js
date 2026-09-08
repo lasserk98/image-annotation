@@ -11,6 +11,19 @@ const PALETTE = [
   '#f97316',
 ]
 
+// Pinned to one locale on purpose: the sort decides both the menu order and
+// which classes the 1-9 shortcuts address, so it has to come out identical for
+// every participant rather than following whatever locale their browser
+// reports. `sensitivity: 'base'` folds case and accents, so Ä sorts with A
+// (German dictionary order, DIN 5007-1); `numeric` keeps "Class 2" ahead of
+// "Class 10".
+const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+
+// Array.prototype.sort is stable, so equal names keep their authored order.
+export function sortClassesByName(classes) {
+  return [...classes].sort((a, b) => collator.compare(a.name, b.name))
+}
+
 function slug(name) {
   return (
     name
