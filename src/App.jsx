@@ -4,7 +4,7 @@ import Workspace from './components/Workspace'
 
 function Shell() {
   const { state } = useApp()
-  return state.studentId ? <Workspace /> : <LoginScreen />
+  return state.participantId ? <Workspace /> : <LoginScreen />
 }
 
 export default function App() {

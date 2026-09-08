@@ -5,10 +5,15 @@ from study participants. Images are loaded from the participant's local disk and
 never leave their browser — only the resulting annotation coordinates (as JSON)
 get exported.
 
-Built for running annotation studies: participants enter a student ID, draw
+Built for running annotation studies: participants enter a participant ID, draw
 polygons around structures in a set of local images, assign each shape a
 class, and download a single JSON file with their results to send back to
 you. Available in English and German (toggle in the top right).
+
+The workspace is a three-column layout: **classes and images on the left**, the
+**canvas in the middle**, and the **instances marked on the current image on the
+right**, grouped by class. Either side panel can be collapsed with the two
+buttons at the far left of the header to give the canvas more room.
 
 ## Quickstart
 
@@ -30,18 +35,24 @@ npm run preview # serve the production build locally to sanity-check it
 
 ## How participants use it
 
-1. Enter a student ID (any non-empty value — there's no roster to validate
+1. Enter a participant ID (any non-empty value — there's no roster to validate
    against, but it's editable later via the ✎ next to Export in case of a typo).
 2. Drag & drop, or click "+ Add", to load one or more local images. Images are
    read straight into the browser (as object URLs) and are never uploaded.
-3. Pick a class in the left sidebar (or press `1`-`9`).
+3. Pick a class in the left panel (or press `1`-`9`). Long class lists scroll
+   and gain a filter box; the active class is echoed next to **+ New shape**.
 4. Click **+ New shape** (or press `N`), then click points on the image to
    place a polygon outline. Click back on the first point (or press `Enter`)
    to close it.
 5. Refine a shape: drag any vertex to move it, double-click a vertex to delete
    it, or double-click an edge to insert a new vertex there.
-6. Switch between loaded images with the `‹ ›` toolbar buttons or arrow keys.
-7. When done, click **Export** in the header to download one JSON file with
+6. Review what's marked in the **Instances** panel on the right — rows are
+   grouped by class, hovering one highlights and names it on the image, and
+   `⇄` moves an instance to a different class.
+7. Zoom with the scroll wheel over the canvas (`Shift`+scroll pans
+   horizontally), drag to pan, **Fit** to reset.
+8. Switch between loaded images with the `‹ ›` toolbar buttons or arrow keys.
+9. When done, click **Export** in the header to download one JSON file with
    every image's annotations.
 
 Full instructions and the keyboard shortcut reference are available in-app
@@ -97,9 +108,11 @@ Each export is one JSON file:
 
 ```json
 {
-  "studentId": "s1234567",
+  "participantId": "P-1234567",
   "treatment": "A",
   "exportedAt": "2026-09-01T12:00:00.000Z",
+  "tool": "image-annotation",
+  "schemaVersion": 2,
   "images": [
     {
       "filename": "case_003.png",
@@ -122,6 +135,11 @@ Each export is one JSON file:
 `points` are in original-image pixel coordinates (regardless of zoom/pan
 during annotation), so they can be rasterized and compared directly against
 ground-truth masks of the same images.
+
+> **`schemaVersion` 2** renamed the top-level `studentId` field to
+> `participantId`. Nothing else about the payload changed, so a reader that
+> needs to accept both can fall back:
+> `pid = data.get("participantId") or data["studentId"]`.
 
 ## Deploying so participants can just open a link
 

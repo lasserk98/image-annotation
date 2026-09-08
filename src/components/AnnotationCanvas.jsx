@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { uid } from '../utils/id'
-import { clamp, distance } from '../utils/geometry'
+import { clamp, distance, polygonCentroid } from '../utils/geometry'
 import Toolbar from './Toolbar'
 
 const MIN_SCALE = 0.05
@@ -9,14 +9,26 @@ const MAX_SCALE = 8
 const CLOSE_HIT_RADIUS = 10 // css px, tolerance for clicking near the first point to close a polygon
 const VERTEX_R = 5 // css px, constant regardless of zoom
 const EDGE_HIT_R = 6 // css px, tolerance for double-clicking an edge to insert a vertex
+const ZOOM_PER_PIXEL = 0.0015 // wheel travel -> zoom, applied exponentially
+
+// Wheel deltas arrive in pixels, lines or pages depending on the device and
+// browser; normalise them to pixels so zoom speed feels the same everywhere.
+function wheelDeltaPx(e, viewportHeight) {
+  if (e.deltaMode === 1) return e.deltaY * 16
+  if (e.deltaMode === 2) return e.deltaY * viewportHeight
+  return e.deltaY
+}
 
 export default function AnnotationCanvas() {
-  const { state, setShapes, selectShape, setActiveClass, selectImage, undo, redo, t } = useApp()
-  const { classes, activeClassId, currentImageId, images, shapesByImage, selection } = state
+  const { state, setShapes, selectShape, hoverShape, setActiveClass, selectImage, undo, redo, t } =
+    useApp()
+  const { classes, activeClassId, currentImageId, images, shapesByImage, selection, hoveredShapeId } =
+    state
   const image = images.find((i) => i.id === currentImageId) || null
   const shapes = (currentImageId && shapesByImage[currentImageId]) || []
   const classById = useMemo(() => Object.fromEntries(classes.map((c) => [c.id, c])), [classes])
-  const activeColor = classById[activeClassId]?.color ?? '#888'
+  const activeClass = classById[activeClassId] ?? null
+  const activeColor = activeClass?.color ?? '#888'
 
   const containerRef = useRef(null)
   const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 })
@@ -24,6 +36,7 @@ export default function AnnotationCanvas() {
   const [draftPoints, setDraftPoints] = useState([])
   const [cursor, setCursor] = useState(null)
   const [dragPoint, setDragPoint] = useState(null) // { index, x, y } live override while dragging a vertex
+  const [panning, setPanning] = useState(false)
 
   const dragRef = useRef(null) // { type: 'pan'|'vertex', ... }
 
@@ -51,11 +64,64 @@ export default function AnnotationCanvas() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentImageId])
 
+  // React attaches its `wheel` handler passively at the root, so an
+  // onWheel={...} preventDefault() is ignored and the gesture leaks out to the
+  // browser (page rubber-banding, pinch-zoom of the whole document). The
+  // listener has to be registered natively with passive: false.
   useEffect(() => {
-    const onResize = () => fit()
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [fit])
+    const el = containerRef.current
+    if (!el) return
+
+    function onWheel(e) {
+      e.preventDefault()
+      const rect = el.getBoundingClientRect()
+      const mx = e.clientX - rect.left
+      const my = e.clientY - rect.top
+
+      // Shift turns the wheel into a horizontal pan, matching the convention
+      // in most canvas tools.
+      if (e.shiftKey) {
+        const dx = wheelDeltaPx(e, el.clientHeight)
+        setTransform((prev) => ({ ...prev, x: prev.x - dx }))
+        return
+      }
+
+      const dy = wheelDeltaPx(e, el.clientHeight)
+      const factor = Math.exp(-dy * ZOOM_PER_PIXEL)
+      // Functional update: this listener is registered once, so it must not
+      // close over a stale transform.
+      setTransform((prev) => {
+        const scale = clamp(prev.scale * factor, MIN_SCALE, MAX_SCALE)
+        if (scale === prev.scale) return prev
+        const imgX = (mx - prev.x) / prev.scale
+        const imgY = (my - prev.y) / prev.scale
+        return { scale, x: mx - imgX * scale, y: my - imgY * scale }
+      })
+    }
+
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [image?.id])
+
+  // Keep the view centre anchored when the container resizes (window resize,
+  // or a side panel being collapsed) instead of re-fitting, which used to
+  // throw away whatever zoom the participant had dialled in.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    let last = { w: el.clientWidth, h: el.clientHeight }
+    const observer = new ResizeObserver(() => {
+      const w = el.clientWidth
+      const h = el.clientHeight
+      const dx = (w - last.w) / 2
+      const dy = (h - last.h) / 2
+      last = { w, h }
+      if (dx === 0 && dy === 0) return
+      setTransform((prev) => ({ ...prev, x: prev.x + dx, y: prev.y + dy }))
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [image?.id])
 
   function toImageSpace(clientX, clientY) {
     const rect = containerRef.current.getBoundingClientRect()
@@ -89,10 +155,20 @@ export default function AnnotationCanvas() {
     selectShape(shape.id)
   }
 
+  function beginPan(e) {
+    dragRef.current = {
+      type: 'pan',
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      start: transform,
+    }
+    setPanning(true)
+  }
+
   function handleBackgroundMouseDown(e) {
     if (e.button === 1 || (e.button === 0 && e.altKey)) {
       // middle-click or alt+drag always pans
-      dragRef.current = { type: 'pan', startClientX: e.clientX, startClientY: e.clientY, start: transform }
+      beginPan(e)
       return
     }
     if (mode === 'draw') {
@@ -110,7 +186,7 @@ export default function AnnotationCanvas() {
     }
     if (e.button === 0) {
       selectShape(null)
-      dragRef.current = { type: 'pan', startClientX: e.clientX, startClientY: e.clientY, start: transform }
+      beginPan(e)
     }
   }
 
@@ -140,6 +216,7 @@ export default function AnnotationCanvas() {
       }
       setDragPoint(null)
     }
+    if (drag?.type === 'pan') setPanning(false)
     dragRef.current = null
   }
 
@@ -153,31 +230,18 @@ export default function AnnotationCanvas() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   })
 
-  function handleWheel(e) {
-    e.preventDefault()
-    const rect = containerRef.current.getBoundingClientRect()
-    const mx = e.clientX - rect.left
-    const my = e.clientY - rect.top
-    const imgX = (mx - transform.x) / transform.scale
-    const imgY = (my - transform.y) / transform.scale
-    const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12
-    const newScale = clamp(transform.scale * factor, MIN_SCALE, MAX_SCALE)
-    setTransform({
-      scale: newScale,
-      x: mx - imgX * newScale,
-      y: my - imgY * newScale,
-    })
-  }
-
   function zoomBy(factor) {
     const el = containerRef.current
     if (!el) return
     const mx = el.clientWidth / 2
     const my = el.clientHeight / 2
-    const imgX = (mx - transform.x) / transform.scale
-    const imgY = (my - transform.y) / transform.scale
-    const newScale = clamp(transform.scale * factor, MIN_SCALE, MAX_SCALE)
-    setTransform({ scale: newScale, x: mx - imgX * newScale, y: my - imgY * newScale })
+    setTransform((prev) => {
+      const scale = clamp(prev.scale * factor, MIN_SCALE, MAX_SCALE)
+      if (scale === prev.scale) return prev
+      const imgX = (mx - prev.x) / prev.scale
+      const imgY = (my - prev.y) / prev.scale
+      return { scale, x: mx - imgX * scale, y: my - imgY * scale }
+    })
   }
 
   function vertexMouseDown(e, shapeId, index) {
@@ -270,8 +334,16 @@ export default function AnnotationCanvas() {
 
   if (!image) {
     return (
-      <div className="flex-1 flex items-center justify-center" style={{ color: 'var(--text-muted)' }}>
-        <p className="text-sm">{t('canvas.empty')}</p>
+      <div
+        className="flex-1 min-w-0 flex flex-col items-center justify-center gap-1.5 px-6 text-center"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        <p className="text-sm" style={{ fontWeight: 600, color: 'var(--text)' }}>
+          {t('canvas.empty')}
+        </p>
+        <p className="text-xs" style={{ color: 'var(--text-muted)', maxWidth: 320 }}>
+          {t('canvas.emptyHint')}
+        </p>
       </div>
     )
   }
@@ -281,7 +353,7 @@ export default function AnnotationCanvas() {
   const invScale = 1 / transform.scale
 
   return (
-    <div className="flex-1 flex flex-col min-w-0">
+    <div className="flex-1 flex flex-col min-w-0 min-h-0">
       <Toolbar
         mode={mode}
         onToggleDraw={startDraw}
@@ -289,15 +361,18 @@ export default function AnnotationCanvas() {
         scale={transform.scale}
         onZoom={zoomBy}
         onFit={fit}
+        activeClass={activeClass}
       />
       <div
         ref={containerRef}
         onMouseDown={handleBackgroundMouseDown}
-        onWheel={handleWheel}
-        className="flex-1 relative overflow-hidden"
+        className="flex-1 relative overflow-hidden min-h-0"
         style={{
           background: 'repeating-conic-gradient(var(--surface-2) 0% 25%, var(--bg) 0% 50%) 0 0 / 20px 20px',
-          cursor: mode === 'draw' ? 'crosshair' : dragRef.current?.type === 'pan' ? 'grabbing' : 'default',
+          // The canvas handles its own gestures; without this, touch and
+          // trackpad scrolling would still try to move an ancestor.
+          touchAction: 'none',
+          cursor: mode === 'draw' ? 'crosshair' : panning ? 'grabbing' : 'grab',
         }}
       >
         <div
@@ -322,28 +397,59 @@ export default function AnnotationCanvas() {
           >
             {shapes.map((shape) => {
               const cls = classById[shape.classId]
+              const color = cls?.color ?? '#888'
               const selected = selection.shapeId === shape.id
+              const hovered = hoveredShapeId === shape.id
+              const emphasised = selected || hovered
               const points = shape.points.map((pt, i) =>
                 dragPoint && dragPoint.shapeId === shape.id && dragPoint.index === i
                   ? { x: dragPoint.x, y: dragPoint.y }
                   : pt,
               )
               const d = points.map((p) => `${p.x},${p.y}`).join(' ')
+              const centre = polygonCentroid(points)
               return (
                 <g key={shape.id}>
                   <polygon
                     points={d}
-                    fill={cls?.color ?? '#888'}
-                    fillOpacity={selected ? 0.32 : 0.2}
-                    stroke={cls?.color ?? '#888'}
-                    strokeWidth={(selected ? 2.5 : 1.5) * invScale}
+                    fill={color}
+                    fillOpacity={selected ? 0.34 : hovered ? 0.28 : 0.18}
+                    stroke={color}
+                    strokeWidth={(selected ? 2.5 : hovered ? 2.2 : 1.5) * invScale}
                     onMouseDown={(e) => {
                       if (mode !== 'select') return
                       e.stopPropagation()
                       selectShape(shape.id)
                     }}
+                    onMouseEnter={() => hoverShape(shape.id)}
+                    onMouseLeave={() => hoverShape(null)}
                     style={{ cursor: mode === 'select' ? 'pointer' : 'default' }}
                   />
+
+                  {/* Name the shape only while it is the focus of attention —
+                      labelling every polygon at once buries the image. */}
+                  {emphasised && cls && (
+                    <text
+                      x={centre.x}
+                      y={centre.y}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fontSize={12 * invScale}
+                      paintOrder="stroke"
+                      style={{
+                        fill: color,
+                        stroke: 'var(--surface)',
+                        strokeWidth: 3.5 * invScale,
+                        strokeLinejoin: 'round',
+                        fontWeight: 700,
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                      }}
+                    >
+                      {cls.name}
+                    </text>
+                  )}
+
                   {selected &&
                     mode === 'select' &&
                     points.map((p, i) => {
@@ -370,7 +476,7 @@ export default function AnnotationCanvas() {
                         cx={p.x}
                         cy={p.y}
                         r={VERTEX_R * invScale}
-                        fill={selection.vertexIndex === i ? '#fff' : cls?.color ?? '#888'}
+                        fill={selection.vertexIndex === i ? '#fff' : color}
                         stroke="#fff"
                         strokeWidth={1.5 * invScale}
                         onMouseDown={(e) => vertexMouseDown(e, shape.id, i)}
@@ -420,6 +526,20 @@ export default function AnnotationCanvas() {
               </g>
             )}
           </svg>
+        </div>
+
+        <div
+          className="absolute pointer-events-none select-none text-[11px] px-2 py-1 rounded-md"
+          style={{
+            right: 10,
+            bottom: 10,
+            color: 'var(--text-muted)',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            opacity: 0.85,
+          }}
+        >
+          {t('canvas.panHint')}
         </div>
       </div>
     </div>

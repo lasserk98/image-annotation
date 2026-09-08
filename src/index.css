@@ -1,31 +1,61 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Design tokens.
+
+   Two families of accent token exist on purpose:
+     --accent            the brand amber; safe for fills, borders, large glyphs
+     --accent-ink        a darkened amber for accent-coloured *text* on surface
+     --accent-contrast   ink to place on top of an --accent fill
+   Amber is too light to carry white text (~2:1), so filled accent controls use
+   dark ink instead of white, and accent-coloured text uses --accent-ink.
+--------------------------------------------------------------------------- */
 :root {
   color-scheme: light dark;
-  --bg: #f6f7f9;
+  --bg: #f3f4f7;
   --surface: #ffffff;
-  --surface-2: #f0f1f4;
-  --border: #e2e4e9;
-  --text: #17181c;
-  --text-muted: #6b7280;
+  --surface-2: #eceef2;
+  --surface-3: #e1e4ea;
+  --border: #e0e3e9;
+  --border-strong: #c8ccd5;
+  --text: #16181d;
+  --text-muted: #646c79;
+  --text-faint: #8f96a2;
   --accent: #f5a225;
-  --accent-soft: #f5a22529;
-  --danger: #dc2626;
-  --success: #16a34a;
+  --accent-ink: #9a5b06;
+  --accent-contrast: #2b1c04;
+  --accent-soft: #f5a2251f;
+  --accent-soft-strong: #f5a22538;
+  --danger: #d92d20;
+  --danger-soft: #d92d201f;
+  --success: #12924a;
+  --ring: #f5a2258c;
+  --shadow-sm: 0 1px 2px rgb(16 18 23 / 0.06), 0 1px 3px rgb(16 18 23 / 0.05);
+  --shadow-lg: 0 12px 32px rgb(16 18 23 / 0.14), 0 2px 8px rgb(16 18 23 / 0.06);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0d0e12;
     --surface: #16171d;
-    --surface-2: #1c1e26;
+    --surface-2: #1d1f27;
+    --surface-3: #262932;
     --border: #2b2d36;
+    --border-strong: #3c3f4a;
     --text: #f2f3f5;
     --text-muted: #9aa0ab;
+    --text-faint: #757c88;
     --accent: #f8b34d;
-    --accent-soft: #f5a22529;
+    --accent-ink: #f8b34d;
+    --accent-contrast: #221703;
+    --accent-soft: #f5a22521;
+    --accent-soft-strong: #f5a2253d;
     --danger: #f87171;
+    --danger-soft: #f871711f;
     --success: #4ade80;
+    --ring: #f8b34d8c;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.3);
   }
 }
 
@@ -40,61 +70,353 @@ body,
   margin: 0;
 }
 
+/* The app owns the viewport: nothing scrolls at the document level, so every
+   wheel event belongs to whichever panel sits under the pointer. */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: var(--accent-soft);
+  background: var(--accent-soft-strong);
 }
 
 button {
   font-family: inherit;
 }
 
-.toolbar-btn {
-  font-size: 13px;
-  padding: 5px 9px;
+button:not(:disabled),
+label,
+summary {
+  cursor: pointer;
+}
+
+/* One visible focus treatment for keyboard users. Several controls clear the
+   UA outline to fit the chrome, so this has to be restored explicitly. */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
   border-radius: 6px;
+}
+
+/* --- buttons ------------------------------------------------------------ */
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 13px;
+  line-height: 1;
+  padding: 6px 9px;
+  border-radius: 7px;
   color: var(--text);
   background: transparent;
   border: 1px solid transparent;
-  transition: background 0.12s, opacity 0.12s;
+  transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
 }
 .toolbar-btn:hover:not(:disabled) {
   background: var(--surface-2);
+  border-color: var(--border);
+}
+.toolbar-btn:active:not(:disabled) {
+  background: var(--surface-3);
 }
 .toolbar-btn:disabled {
   opacity: 0.35;
   cursor: default;
 }
+.toolbar-btn[data-active='true'] {
+  background: var(--accent-soft-strong);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
 
 .toolbar-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   font-size: 13px;
-  font-weight: 500;
-  padding: 5px 10px;
-  border-radius: 6px;
-  color: white;
+  font-weight: 600;
+  line-height: 1;
+  padding: 6px 11px;
+  border-radius: 7px;
+  color: var(--accent-contrast);
   background: var(--accent);
-  transition: opacity 0.12s;
+  border: 1px solid transparent;
+  transition: filter 0.12s ease, opacity 0.12s ease;
 }
-.toolbar-btn-primary:hover {
-  opacity: 0.9;
+.toolbar-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.toolbar-btn-primary:active:not(:disabled) {
+  filter: brightness(0.95);
+}
+.toolbar-btn-primary:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
-/* thin scrollbars for the tool chrome */
-.scroll-thin::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* A quiet text button for panel-header affordances ("Load", "Reset", "Add"). */
+.link-btn {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: var(--accent-ink);
+  transition: background 0.12s ease, color 0.12s ease;
 }
-.scroll-thin::-webkit-scrollbar-thumb {
-  background: var(--border);
+.link-btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+.link-btn-muted {
+  color: var(--text-muted);
+}
+.link-btn-muted:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* --- panels ------------------------------------------------------------- */
+
+/* A side panel is a flex column whose sections each scroll on their own; the
+   panel itself never scrolls, so content can never push the layout past the
+   viewport edge. */
+/* height: 100% is explicit so the percentage max-height that caps the class
+   list resolves against a definite containing block. */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+.panel-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 8px 8px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+}
+
+.panel-empty {
+  padding: 10px 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* --- list rows ---------------------------------------------------------- */
+
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
   border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  transition: background 0.1s ease, border-color 0.1s ease;
 }
+.list-row:hover {
+  background: var(--surface-2);
+}
+.list-row[data-active='true'],
+.list-row[data-active='true']:hover {
+  background: var(--accent-soft-strong);
+  border-color: var(--accent);
+}
+
+.swatch {
+  flex-shrink: 0;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
+}
+
+.count-badge {
+  flex-shrink: 0;
+  min-width: 19px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+.kbd-hint {
+  flex-shrink: 0;
+  min-width: 17px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-faint);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+/* Row actions stay hidden until the row is hovered or the button takes focus,
+   so lists read cleanly while remaining keyboard reachable. */
+.row-action {
+  flex-shrink: 0;
+  opacity: 0;
+  padding: 2px 5px;
+  border-radius: 5px;
+  font-size: 12px;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  transition: opacity 0.1s ease, background 0.1s ease, color 0.1s ease;
+}
+.group:hover .row-action,
+.row-action:focus-visible {
+  opacity: 1;
+}
+.row-action:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* --- form controls ------------------------------------------------------ */
+
+.field {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.field::placeholder {
+  color: var(--text-faint);
+}
+.field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.field:focus-visible {
+  outline: none;
+}
+
+.field-sm {
+  padding: 5px 8px;
+  font-size: 12px;
+  border-radius: 7px;
+}
+
+/* Native selects inherit the surface so the closed state matches the panel and
+   the popup list stays readable in dark mode. */
+.select-inline {
+  min-width: 0;
+  padding: 3px 4px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  outline: none;
+  transition: background 0.1s ease, border-color 0.1s ease;
+}
+.select-inline:hover {
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+.select-inline option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* --- scrollbars --------------------------------------------------------- */
+
+.panel-body,
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+  overscroll-behavior: contain;
+}
+.panel-body::-webkit-scrollbar,
+.scroll-thin::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.panel-body::-webkit-scrollbar-thumb,
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+.panel-body::-webkit-scrollbar-thumb:hover,
+.scroll-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--text-faint);
+  background-clip: content-box;
+}
+.panel-body::-webkit-scrollbar-track,
 .scroll-thin::-webkit-scrollbar-track {
   background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
