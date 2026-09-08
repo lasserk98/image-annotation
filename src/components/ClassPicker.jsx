@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { parseClasses } from '../utils/classes'
+import { parseClasses, tintColor } from '../utils/classes'
 
 // Above this many classes the list stops being scannable by eye, so a filter
 // box appears. The sample surgical class list has 34 entries.
@@ -124,17 +124,22 @@ export default function ClassPicker() {
                   key={cls.id}
                   onClick={() => setActiveClass(cls.id)}
                   className="list-row"
-                  data-active={active}
                   aria-pressed={active}
                   title={active ? t('classPicker.activeTitle') : cls.name}
+                  style={{
+                    // Same colour treatment as the instance rows, so a class
+                    // looks the same in the menu as the shapes it produces.
+                    background: tintColor(cls.color, active ? 0.32 : 0.1),
+                    borderWidth: 1,
+                    borderStyle: 'solid',
+                    borderColor: active ? cls.color : 'transparent',
+                    borderLeftWidth: 3,
+                    borderLeftColor: cls.color,
+                  }}
                 >
                   <span
-                    className="swatch"
-                    style={{ background: cls.color, width: 12, height: 12 }}
-                  />
-                  <span
                     className="flex-1 min-w-0 truncate text-[13px]"
-                    style={{ fontWeight: active ? 600 : 400 }}
+                    style={{ fontWeight: active ? 700 : 500 }}
                   >
                     {cls.name}
                   </span>

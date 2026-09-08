@@ -47,14 +47,18 @@ npm run preview # serve the production build locally to sanity-check it
    to close it.
 5. Refine a shape: drag any vertex to move it, double-click a vertex to delete
    it, or double-click an edge to insert a new vertex there.
-6. Review what's marked in the **Instances** panel on the right — rows are
-   grouped by class, hovering one highlights and names it on the image, and
-   `⇄` moves an instance to a different class.
+6. Review what's marked in the **Instances** panel on the right. Each row is
+   filled with its class colour and ordered by class, hovering one highlights
+   and names it on the image, and clicking the class name on the row moves that
+   instance to a different class.
 7. Zoom with the scroll wheel over the canvas (`Shift`+scroll pans
    horizontally), drag to pan, **Fit** to reset.
 8. Switch between loaded images with the `‹ ›` toolbar buttons or arrow keys.
 9. When done, click **Export** in the header to download one JSON file with
-   every image's annotations.
+   every image's annotations. If any loaded image is still unannotated the
+   header counter turns amber and Export asks for confirmation first, naming
+   the frames it is about to write out empty — unannotated frames are also
+   flagged in the image list, so they're easy to find and finish.
 
 Full instructions and the keyboard shortcut reference are available in-app
 behind the ⓘ icon in the header (translated along with the rest of the UI).

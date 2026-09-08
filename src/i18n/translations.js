@@ -13,6 +13,8 @@ export const translations = {
     'header.export': 'Export',
     'header.exportTitle': 'Download all annotations as JSON',
     'header.annotatedCount': '{n}/{total} annotated',
+    'header.incompleteCount': '{n} of {total} not annotated',
+    'header.incompleteTitle': '{n} loaded image(s) still have no annotation',
     'header.logout': 'Log out',
     'header.logoutTitle': 'Switch participant',
     'header.treatmentLabel': 'treatment {t}',
@@ -42,6 +44,14 @@ export const translations = {
     'imageGallery.shapeCountPlural': '{n} instances',
     'imageGallery.removeTitle': 'Remove image',
     'imageGallery.annotated': 'Annotated',
+    'imageGallery.notAnnotated': 'Not annotated yet',
+
+    'export.incompleteTitle': 'Not every image is annotated',
+    'export.incompleteBody':
+      '{n} of {total} loaded images have no annotation yet. They will be exported with an empty instance list.',
+    'export.andMore': '…and {n} more',
+    'export.goBack': 'Go back',
+    'export.exportAnyway': 'Export anyway',
 
     'instances.heading': 'Instances',
     'instances.empty': 'No instances yet. Pick a class on the left, then click “+ New shape” and outline a structure on the image.',
@@ -109,6 +119,8 @@ export const translations = {
     'header.export': 'Exportieren',
     'header.exportTitle': 'Alle Annotationen als JSON herunterladen',
     'header.annotatedCount': '{n}/{total} annotiert',
+    'header.incompleteCount': '{n} von {total} nicht annotiert',
+    'header.incompleteTitle': '{n} geladene(s) Bild(er) haben noch keine Annotation',
     'header.logout': 'Abmelden',
     'header.logoutTitle': 'Teilnehmer wechseln',
     'header.treatmentLabel': 'Treatment {t}',
@@ -138,6 +150,14 @@ export const translations = {
     'imageGallery.shapeCountPlural': '{n} Instanzen',
     'imageGallery.removeTitle': 'Bild entfernen',
     'imageGallery.annotated': 'Annotiert',
+    'imageGallery.notAnnotated': 'Noch nicht annotiert',
+
+    'export.incompleteTitle': 'Nicht alle Bilder sind annotiert',
+    'export.incompleteBody':
+      '{n} von {total} geladenen Bildern haben noch keine Annotation. Sie werden mit einer leeren Instanzliste exportiert.',
+    'export.andMore': '… und {n} weitere',
+    'export.goBack': 'Zurück',
+    'export.exportAnyway': 'Trotzdem exportieren',
 
     'instances.heading': 'Instanzen',
     'instances.empty': 'Noch keine Instanzen. Wähle links eine Klasse, klicke dann auf „+ Neue Form“ und umrande eine Struktur im Bild.',

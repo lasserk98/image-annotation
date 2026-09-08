@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
 import { buildExportData, downloadJSON } from '../utils/export'
 import UsageModal from './UsageModal'
+import ExportWarningModal from './ExportWarningModal'
 
 function EditableField({ value, placeholder, title, onCommit }) {
   const [editing, setEditing] = useState(false)
@@ -67,15 +68,26 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
   const { state, logout, updateParticipantId, setLang, t } = useApp()
   const { participantId, treatment, images, shapesByImage, classes, lang } = state
   const [showUsage, setShowUsage] = useState(false)
+  const [showExportWarning, setShowExportWarning] = useState(false)
 
-  const annotatedCount = images.filter((img) => (shapesByImage[img.id]?.length ?? 0) > 0).length
+  const unannotated = images.filter((img) => (shapesByImage[img.id]?.length ?? 0) === 0)
+  const annotatedCount = images.length - unannotated.length
   const studyName = typeof study.studyName === 'object' ? study.studyName[lang] : study.studyName
   const progress = images.length > 0 ? annotatedCount / images.length : 0
+  const incomplete = images.length > 0 && unannotated.length > 0
 
-  function handleExport() {
+  function runExport() {
     const data = buildExportData({ participantId, treatment, images, shapesByImage, classes })
     const stamp = new Date().toISOString().replace(/[:.]/g, '-')
     downloadJSON(`annotations_${participantId}_${stamp}.json`, data)
+    setShowExportWarning(false)
+  }
+
+  // Leaving a frame unannotated is usually an oversight rather than a
+  // deliberate "nothing here", so confirm before the file is written.
+  function handleExport() {
+    if (incomplete) setShowExportWarning(true)
+    else runExport()
   }
 
   return (
@@ -162,13 +174,19 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
             style={{
               width: `${progress * 100}%`,
               height: '100%',
-              background: 'var(--success)',
+              background: incomplete ? 'var(--accent)' : 'var(--success)',
               transition: 'width 0.2s ease',
             }}
           />
         </div>
-        <span className="text-xs tabular-nums whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
-          {t('header.annotatedCount', { n: annotatedCount, total: images.length })}
+        <span
+          className="text-xs tabular-nums whitespace-nowrap"
+          style={{ color: incomplete ? 'var(--accent-ink)' : 'var(--text-muted)' }}
+          title={incomplete ? t('header.incompleteTitle', { n: unannotated.length }) : undefined}
+        >
+          {incomplete
+            ? t('header.incompleteCount', { n: unannotated.length, total: images.length })
+            : t('header.annotatedCount', { n: annotatedCount, total: images.length })}
         </span>
       </div>
 
@@ -219,6 +237,14 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
       </div>
 
       {showUsage && <UsageModal onClose={() => setShowUsage(false)} />}
+      {showExportWarning && (
+        <ExportWarningModal
+          unannotated={unannotated}
+          total={images.length}
+          onCancel={() => setShowExportWarning(false)}
+          onConfirm={runExport}
+        />
+      )}
     </header>
   )
 }

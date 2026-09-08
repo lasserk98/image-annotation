@@ -24,6 +24,28 @@ export function sortClassesByName(classes) {
   return [...classes].sort((a, b) => collator.compare(a.name, b.name))
 }
 
+// Washes a row in its class colour. Class colours come from user-authored
+// JSON, so they aren't guaranteed to be hex: hex is converted to rgba directly
+// (no reliance on color-mix support), anything else — a named colour, rgb() —
+// goes through color-mix, and a browser without it simply renders no tint.
+export function tintColor(color, alpha) {
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(color))
+  if (hex) {
+    const digits =
+      hex[1].length === 3
+        ? hex[1]
+            .split('')
+            .map((c) => c + c)
+            .join('')
+        : hex[1]
+    const r = parseInt(digits.slice(0, 2), 16)
+    const g = parseInt(digits.slice(2, 4), 16)
+    const b = parseInt(digits.slice(4, 6), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+  return `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`
+}
+
 function slug(name) {
   return (
     name
