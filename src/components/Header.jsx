@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
 import { buildExportData, downloadJSON } from '../utils/export'
 import UsageModal from './UsageModal'
+import ExportWarningModal from './ExportWarningModal'
 
 function EditableField({ value, placeholder, title, onCommit }) {
   const [editing, setEditing] = useState(false)
@@ -64,18 +65,40 @@ function EditableField({ value, placeholder, title, onCommit }) {
 }
 
 export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRight }) {
-  const { state, logout, updateParticipantId, setLang, t } = useApp()
+  const { state, logout, clearJustLoggedIn, updateParticipantId, setLang, t } = useApp()
   const { participantId, treatment, images, shapesByImage, classes, lang } = state
   const [showUsage, setShowUsage] = useState(false)
+  const [showExportWarning, setShowExportWarning] = useState(false)
 
-  const annotatedCount = images.filter((img) => (shapesByImage[img.id]?.length ?? 0) > 0).length
+  // Header is remounted fresh each time Workspace swaps in for LoginScreen,
+  // so this only fires once per actual login — not on every reload of a
+  // session already saved in localStorage.
+  useEffect(() => {
+    if (state.justLoggedIn) {
+      setShowUsage(true)
+      clearJustLoggedIn()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const unannotated = images.filter((img) => (shapesByImage[img.id]?.length ?? 0) === 0)
+  const annotatedCount = images.length - unannotated.length
   const studyName = typeof study.studyName === 'object' ? study.studyName[lang] : study.studyName
   const progress = images.length > 0 ? annotatedCount / images.length : 0
+  const incomplete = images.length > 0 && unannotated.length > 0
 
-  function handleExport() {
+  function runExport() {
     const data = buildExportData({ participantId, treatment, images, shapesByImage, classes })
     const stamp = new Date().toISOString().replace(/[:.]/g, '-')
     downloadJSON(`annotations_${participantId}_${stamp}.json`, data)
+    setShowExportWarning(false)
+  }
+
+  // Leaving a frame unannotated is usually an oversight rather than a
+  // deliberate "nothing here", so confirm before the file is written.
+  function handleExport() {
+    if (incomplete) setShowExportWarning(true)
+    else runExport()
   }
 
   return (
@@ -135,15 +158,15 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
 
       <button
         onClick={() => setShowUsage(true)}
-        className="toolbar-btn flex-shrink-0"
+        className="toolbar-btn-info flex-shrink-0"
         title={t('header.usageTitle')}
         aria-label={t('header.usageTitle')}
-        style={{ color: 'var(--text-muted)' }}
       >
         <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.3" />
           <path d="M8 7.1v4M8 4.7v.9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
+        <span className="hidden md:inline">{t('header.usage')}</span>
       </button>
 
       <div className="flex-1 min-w-[8px]" />
@@ -162,13 +185,19 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
             style={{
               width: `${progress * 100}%`,
               height: '100%',
-              background: 'var(--success)',
+              background: incomplete ? 'var(--accent)' : 'var(--success)',
               transition: 'width 0.2s ease',
             }}
           />
         </div>
-        <span className="text-xs tabular-nums whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>
-          {t('header.annotatedCount', { n: annotatedCount, total: images.length })}
+        <span
+          className="text-xs tabular-nums whitespace-nowrap"
+          style={{ color: incomplete ? 'var(--accent-ink)' : 'var(--text-muted)' }}
+          title={incomplete ? t('header.incompleteTitle', { n: unannotated.length }) : undefined}
+        >
+          {incomplete
+            ? t('header.incompleteCount', { n: unannotated.length, total: images.length })
+            : t('header.annotatedCount', { n: annotatedCount, total: images.length })}
         </span>
       </div>
 
@@ -219,6 +248,14 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
       </div>
 
       {showUsage && <UsageModal onClose={() => setShowUsage(false)} />}
+      {showExportWarning && (
+        <ExportWarningModal
+          unannotated={unannotated}
+          total={images.length}
+          onCancel={() => setShowExportWarning(false)}
+          onConfirm={runExport}
+        />
+      )}
     </header>
   )
 }

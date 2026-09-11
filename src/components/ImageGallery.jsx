@@ -100,19 +100,28 @@ export default function ImageGallery() {
                     >
                       {img.name}
                     </p>
-                    <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                      {count === 1
-                        ? t('imageGallery.shapeCount', { n: count })
-                        : t('imageGallery.shapeCountPlural', { n: count })}
+                    <p
+                      className="text-[11px]"
+                      style={{ color: count === 0 ? 'var(--accent-ink)' : 'var(--text-muted)' }}
+                    >
+                      {count === 0
+                        ? t('imageGallery.notAnnotated')
+                        : count === 1
+                          ? t('imageGallery.shapeCount', { n: count })
+                          : t('imageGallery.shapeCountPlural', { n: count })}
                     </p>
                   </div>
-                  {count > 0 && (
-                    <span
-                      className="swatch"
-                      style={{ background: 'var(--success)', width: 6, height: 6 }}
-                      title={t('imageGallery.annotated')}
-                    />
-                  )}
+                  {/* Marks every frame either way, so the ones still missing
+                      annotations are as easy to spot as the finished ones. */}
+                  <span
+                    className="swatch"
+                    style={{
+                      background: count > 0 ? 'var(--success)' : 'var(--accent)',
+                      width: 6,
+                      height: 6,
+                    }}
+                    title={count > 0 ? t('imageGallery.annotated') : t('imageGallery.notAnnotated')}
+                  />
                   <button
                     onClick={(e) => {
                       e.stopPropagation()

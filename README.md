@@ -39,21 +39,26 @@ npm run preview # serve the production build locally to sanity-check it
    against, but it's editable later via the ✎ next to Export in case of a typo).
 2. Drag & drop, or click "+ Add", to load one or more local images. Images are
    read straight into the browser (as object URLs) and are never uploaded.
-3. Pick a class in the left panel (or press `1`-`9`). Long class lists scroll
-   and gain a filter box; the active class is echoed next to **+ New shape**.
+3. Pick a class in the left panel (or press `1`-`9` for the first nine).
+   Classes are listed alphabetically; long lists scroll and gain a filter box,
+   and the active class is echoed next to **+ New shape**.
 4. Click **+ New shape** (or press `N`), then click points on the image to
    place a polygon outline. Click back on the first point (or press `Enter`)
    to close it.
 5. Refine a shape: drag any vertex to move it, double-click a vertex to delete
    it, or double-click an edge to insert a new vertex there.
-6. Review what's marked in the **Instances** panel on the right — rows are
-   grouped by class, hovering one highlights and names it on the image, and
-   `⇄` moves an instance to a different class.
+6. Review what's marked in the **Instances** panel on the right. Each row is
+   filled with its class colour and ordered by class, hovering one highlights
+   and names it on the image, and clicking the class name on the row moves that
+   instance to a different class.
 7. Zoom with the scroll wheel over the canvas (`Shift`+scroll pans
    horizontally), drag to pan, **Fit** to reset.
 8. Switch between loaded images with the `‹ ›` toolbar buttons or arrow keys.
 9. When done, click **Export** in the header to download one JSON file with
-   every image's annotations.
+   every image's annotations. If any loaded image is still unannotated the
+   header counter turns amber and Export asks for confirmation first, naming
+   the frames it is about to write out empty — unannotated frames are also
+   flagged in the image list, so they're easy to find and finish.
 
 Full instructions and the keyboard shortcut reference are available in-app
 behind the ⓘ icon in the header (translated along with the rest of the UI).
@@ -77,6 +82,13 @@ reloads until "Reset" is clicked — handy for handing out a study-specific
 class list as a plain file alongside the images, without needing a rebuild.
 `samples/classes-ci-surgery-de.json` is a real 34-class example (German
 cochlear implant surgery landmarks) you can use to try this out.
+
+Whichever list is in use, the app **sorts it alphabetically by name** before
+displaying it, so the order in the file only affects which palette colour each
+name is assigned. The comparison is case- and accent-insensitive (`Ä` sorts
+with `A`) and digit-aware (`Class 2` before `Class 10`), and it is pinned to a
+single locale so every participant gets the same order — and therefore the same
+`1`-`9` shortcut mapping — regardless of their browser's language settings.
 
 ### `src/config/study.json` — study name, instructions, treatments
 

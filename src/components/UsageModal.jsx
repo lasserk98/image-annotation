@@ -25,6 +25,7 @@ const STEP_KEYS = [
   'usage.step5',
   'usage.step6',
   'usage.step7',
+  'usage.step8',
 ]
 
 export default function UsageModal({ onClose }) {

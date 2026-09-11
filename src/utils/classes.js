@@ -11,6 +11,41 @@ const PALETTE = [
   '#f97316',
 ]
 
+// Pinned to one locale on purpose: the sort decides both the menu order and
+// which classes the 1-9 shortcuts address, so it has to come out identical for
+// every participant rather than following whatever locale their browser
+// reports. `sensitivity: 'base'` folds case and accents, so Ä sorts with A
+// (German dictionary order, DIN 5007-1); `numeric` keeps "Class 2" ahead of
+// "Class 10".
+const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+
+// Array.prototype.sort is stable, so equal names keep their authored order.
+export function sortClassesByName(classes) {
+  return [...classes].sort((a, b) => collator.compare(a.name, b.name))
+}
+
+// Washes a row in its class colour. Class colours come from user-authored
+// JSON, so they aren't guaranteed to be hex: hex is converted to rgba directly
+// (no reliance on color-mix support), anything else — a named colour, rgb() —
+// goes through color-mix, and a browser without it simply renders no tint.
+export function tintColor(color, alpha) {
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(color))
+  if (hex) {
+    const digits =
+      hex[1].length === 3
+        ? hex[1]
+            .split('')
+            .map((c) => c + c)
+            .join('')
+        : hex[1]
+    const r = parseInt(digits.slice(0, 2), 16)
+    const g = parseInt(digits.slice(2, 4), 16)
+    const b = parseInt(digits.slice(4, 6), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+  return `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`
+}
+
 function slug(name) {
   return (
     name

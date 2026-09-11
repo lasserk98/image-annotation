@@ -38,7 +38,7 @@ export default function Workspace() {
         {leftOpen && (
           <aside
             className="side-panel"
-            style={{ width: 268, borderRight: '1px solid var(--border)' }}
+            style={{ width: 268, minWidth: 180, borderRight: '1px solid var(--border)' }}
             aria-label="Classes and images"
           >
             {/* Classes take only the room they need, up to a little over half
@@ -62,7 +62,7 @@ export default function Workspace() {
         {rightOpen && (
           <aside
             className="side-panel"
-            style={{ width: 284, borderLeft: '1px solid var(--border)' }}
+            style={{ width: 284, minWidth: 190, borderLeft: '1px solid var(--border)' }}
             aria-label="Segmented instances"
           >
             <div className="panel-section" style={{ flex: '1 1 0' }}>

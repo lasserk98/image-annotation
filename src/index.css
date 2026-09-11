@@ -29,6 +29,8 @@
   --danger: #d92d20;
   --danger-soft: #d92d201f;
   --success: #12924a;
+  --info: #2f6fed;
+  --info-contrast: #ffffff;
   --ring: #f5a2258c;
   --shadow-sm: 0 1px 2px rgb(16 18 23 / 0.06), 0 1px 3px rgb(16 18 23 / 0.05);
   --shadow-lg: 0 12px 32px rgb(16 18 23 / 0.14), 0 2px 8px rgb(16 18 23 / 0.06);
@@ -53,6 +55,8 @@
     --danger: #f87171;
     --danger-soft: #f871711f;
     --success: #4ade80;
+    --info: #5b8def;
+    --info-contrast: #0a1530;
     --ring: #f8b34d8c;
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
     --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.3);
@@ -169,6 +173,31 @@ summary {
   cursor: default;
 }
 
+/* A distinctly-coloured affordance for the instructions/help modal, kept
+   visually separate from the amber accent so it doesn't read as another
+   "primary action" next to Export. */
+.toolbar-btn-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 6px 11px;
+  border-radius: 7px;
+  color: var(--info-contrast);
+  background: var(--info);
+  border: 1px solid transparent;
+  transition: filter 0.12s ease, opacity 0.12s ease;
+}
+.toolbar-btn-info:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.toolbar-btn-info:active:not(:disabled) {
+  filter: brightness(0.95);
+}
+
 /* A quiet text button for panel-header affordances ("Load", "Reset", "Add"). */
 .link-btn {
   font-size: 12px;
@@ -199,12 +228,18 @@ summary {
    viewport edge. */
 /* height: 100% is explicit so the percentage max-height that caps the class
    list resolves against a definite containing block. */
+/* The panels may shrink below their preferred width rather than overflow the
+   row: the canvas gives up its space first (flex-basis 0), but once it is out
+   of room the panels have to compress instead of pushing their right edge —
+   and their delete buttons — past the window. */
 .side-panel {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  flex-shrink: 0;
+  flex-grow: 0;
+  flex-shrink: 1;
+  min-width: 0;
   background: var(--surface);
 }
 
@@ -266,8 +301,13 @@ summary {
   text-align: left;
   transition: background 0.1s ease, border-color 0.1s ease;
 }
+/* Class and instance rows paint their own class-coloured background inline,
+   which would beat a background-only hover rule — so hover is expressed as an
+   inset outline that composes with whatever the row is tinted. */
 .list-row:hover {
   background: var(--surface-2);
+  outline: 1px solid var(--border-strong);
+  outline-offset: -1px;
 }
 .list-row[data-active='true'],
 .list-row[data-active='true']:hover {
@@ -307,15 +347,21 @@ summary {
   border: 1px solid var(--border);
 }
 
-/* Row actions stay hidden until the row is hovered or the button takes focus,
-   so lists read cleanly while remaining keyboard reachable. */
+/* Row actions are always drawn, just dimmed until the row is hovered. Hiding
+   them outright made the delete button hard to find, and a fixed size keeps it
+   from being squeezed out of the row. */
 .row-action {
-  flex-shrink: 0;
-  opacity: 0;
-  padding: 2px 5px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  opacity: 0.5;
   border-radius: 5px;
   font-size: 12px;
   line-height: 1;
+  padding: 0;
   background: transparent;
   border: none;
   color: var(--text-muted);
@@ -326,6 +372,7 @@ summary {
   opacity: 1;
 }
 .row-action:hover {
+  opacity: 1;
   background: var(--danger-soft);
   color: var(--danger);
 }
@@ -360,26 +407,38 @@ summary {
   border-radius: 7px;
 }
 
-/* Native selects inherit the surface so the closed state matches the panel and
-   the popup list stays readable in dark mode. */
-.select-inline {
+/* The instance rows' class name IS the reassign control: a select that fills
+   the row and shows the current class.
+
+   `min-width: 0` is load-bearing. A native select's min-content width is the
+   width of its widest <option>, and with class names like "Retroaurikulärer
+   Wundverschluss" in the list that is far wider than the panel — without this
+   the select refuses to shrink, stretches the row, and pushes the delete
+   button off the right edge of the window. */
+.row-select {
+  flex: 1 1 0;
   min-width: 0;
-  padding: 3px 4px;
+  padding: 2px 4px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
   color: var(--text);
   background: transparent;
   border: 1px solid transparent;
   outline: none;
+  text-overflow: ellipsis;
   transition: background 0.1s ease, border-color 0.1s ease;
 }
-.select-inline:hover {
+.row-select:hover {
   background: var(--surface);
   border-color: var(--border-strong);
 }
-.select-inline option {
+/* The popup inherits the panel surface so it stays readable in dark mode, and
+   drops the row's bold weight. */
+.row-select option {
   background: var(--surface);
   color: var(--text);
+  font-weight: 400;
 }
 
 /* --- scrollbars --------------------------------------------------------- */
