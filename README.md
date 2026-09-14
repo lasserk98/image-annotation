@@ -109,8 +109,10 @@ Classes can be set up in two ways, and both are saved to that browser's
   asks for confirmation first, since existing shapes are left without a
   class and need reassigning afterwards in the instances panel).
 
-"Export" downloads the current class list as JSON (for reuse or backup), and
-"Clear all" removes every class from the list.
+"Export" prompts for a file name (defaulting to `classes.json`; any other
+extension you type is replaced with `.json`) and downloads the current class
+list under it, for reuse or backup. "Clear all" removes every class from the
+list.
 
 Whichever list is in use, the app **sorts it alphabetically by name** before
 displaying it, so the order in the file only affects which palette colour each

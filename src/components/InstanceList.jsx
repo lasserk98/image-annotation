@@ -97,7 +97,14 @@ export default function InstanceList() {
                     background: tintColor(cls.color, selected ? 0.34 : hovered ? 0.24 : 0.12),
                     borderWidth: 1,
                     borderStyle: 'solid',
-                    borderColor: selected ? cls.color : 'transparent',
+                    // Per-side colours, not the `borderColor` shorthand — see
+                    // the identical note in ClassPicker.jsx: writing the
+                    // shorthand resets all four CSSOM side colours whenever
+                    // `selected` toggles, silently clobbering the unchanged
+                    // left colour below, which React then never reapplies.
+                    borderTopColor: selected ? cls.color : 'transparent',
+                    borderRightColor: selected ? cls.color : 'transparent',
+                    borderBottomColor: selected ? cls.color : 'transparent',
                     borderLeftWidth: 3,
                     borderLeftColor: cls.color,
                   }}

@@ -64,6 +64,12 @@ export const translations = {
     'classPicker.renameTitle': 'Rename this class',
     'classPicker.deleteTitle': 'Delete this class',
 
+    'exportClassesModal.title': 'Export class list',
+    'exportClassesModal.filenameLabel': 'File name',
+    'exportClassesModal.hint': 'Always saved as .json — any other extension you type is replaced.',
+    'exportClassesModal.cancel': 'Cancel',
+    'exportClassesModal.confirm': 'Export',
+
     'imageGallery.heading': 'Images',
     'imageGallery.add': '+ Add',
     'imageGallery.addFolder': '+ Add folder',
@@ -204,6 +210,12 @@ export const translations = {
     'classPicker.addClassTitle': 'Neue Klasse anlegen und aktivieren',
     'classPicker.renameTitle': 'Diese Klasse umbenennen',
     'classPicker.deleteTitle': 'Diese Klasse löschen',
+
+    'exportClassesModal.title': 'Klassenliste exportieren',
+    'exportClassesModal.filenameLabel': 'Dateiname',
+    'exportClassesModal.hint': 'Wird immer als .json gespeichert — jede andere Endung wird ersetzt.',
+    'exportClassesModal.cancel': 'Abbrechen',
+    'exportClassesModal.confirm': 'Exportieren',
 
     'imageGallery.heading': 'Bilder',
     'imageGallery.add': '+ Hinzufügen',

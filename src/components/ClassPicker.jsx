@@ -10,6 +10,7 @@ import {
 import { downloadJSON } from '../utils/export'
 import EditableField from './EditableField'
 import DeleteClassModal from './DeleteClassModal'
+import ExportClassesModal from './ExportClassesModal'
 
 // Above this many classes the list stops being scannable by eye, so a filter
 // box appears. The sample surgical class list has 34 entries.
@@ -29,6 +30,7 @@ export default function ClassPicker() {
   const [query, setQuery] = useState('')
   const [newClassName, setNewClassName] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null) // { cls, usage }
+  const [showExportModal, setShowExportModal] = useState(false)
 
   const countByClass = useMemo(() => {
     const counts = {}
@@ -122,7 +124,7 @@ export default function ClassPicker() {
               {t('classPicker.load')}
             </button>
             <button
-              onClick={() => downloadJSON('classes.json', classes)}
+              onClick={() => setShowExportModal(true)}
               disabled={classes.length === 0}
               className="link-btn"
               title={t('classPicker.exportTitle')}
@@ -228,7 +230,16 @@ export default function ClassPicker() {
                     background: tintColor(cls.color, active ? 0.32 : 0.1),
                     borderWidth: 1,
                     borderStyle: 'solid',
-                    borderColor: active ? cls.color : 'transparent',
+                    // Per-side colours, not the `borderColor` shorthand: React
+                    // only reapplies a style key to the DOM when its own value
+                    // changes between renders, but writing the `border-color`
+                    // shorthand resets all four side colours in the CSSOM at
+                    // once. Toggling `active` only changes these three sides —
+                    // it was clobbering the still-unchanged left colour below,
+                    // which React then never reapplied to fix.
+                    borderTopColor: active ? cls.color : 'transparent',
+                    borderRightColor: active ? cls.color : 'transparent',
+                    borderBottomColor: active ? cls.color : 'transparent',
                     borderLeftWidth: 3,
                     borderLeftColor: cls.color,
                   }}
@@ -281,6 +292,16 @@ export default function ClassPicker() {
           onConfirm={() => {
             deleteClass(deleteTarget.cls.id)
             setDeleteTarget(null)
+          }}
+        />
+      )}
+
+      {showExportModal && (
+        <ExportClassesModal
+          onCancel={() => setShowExportModal(false)}
+          onConfirm={(filename) => {
+            downloadJSON(filename, classes)
+            setShowExportModal(false)
           }}
         />
       )}
