@@ -136,6 +136,10 @@ export default function AnnotationCanvas() {
   }
 
   function startDraw() {
+    // A shape's classId comes straight from activeClassId (see finishDraw
+    // below) — with no class selected (now reachable since the default
+    // class list is empty) that would silently commit a null-classId shape.
+    if (!activeClassId) return
     setMode('draw')
     setDraftPoints([])
     selectShape(null)

@@ -60,7 +60,12 @@ export default function Toolbar({ mode, onToggleDraw, onCancelDraw, scale, onZoo
           </button>
         </>
       ) : (
-        <button onClick={onToggleDraw} className="toolbar-btn-primary" title={t('toolbar.newShapeTitle')}>
+        <button
+          onClick={onToggleDraw}
+          disabled={!activeClass}
+          className="toolbar-btn-primary"
+          title={activeClass ? t('toolbar.newShapeTitle') : t('toolbar.newShapeNoClass')}
+        >
           {t('toolbar.newShape')}
         </button>
       )}

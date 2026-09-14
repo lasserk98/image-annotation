@@ -9,6 +9,8 @@ import {
   clearClasses,
   loadLang,
   saveLang,
+  loadTheme,
+  saveTheme,
 } from '../utils/storage'
 import { sortClassesByName } from '../utils/classes'
 import { translate } from '../i18n/translations'
@@ -21,6 +23,19 @@ function emptyHistory() {
   return { past: [], future: [] }
 }
 
+// Applying the attribute directly (rather than only storing `theme` in
+// state) is what lets the CSS overrides in index.css win over
+// prefers-color-scheme in both directions — see the :root[data-theme=...]
+// rules there.
+function applyTheme(theme) {
+  if (typeof document === 'undefined') return
+  if (theme === 'system') {
+    delete document.documentElement.dataset.theme
+  } else {
+    document.documentElement.dataset.theme = theme
+  }
+}
+
 const initialSession = loadSession()
 const storedClasses = loadClasses()
 // Every class list is sorted on the way in — whether it came from the bundled
@@ -31,6 +46,9 @@ const initialClasses = sortClassesByName(
 )
 const storedLang = loadLang()
 const browserLang = typeof navigator !== 'undefined' && navigator.language?.startsWith('de') ? 'de' : 'en'
+const storedTheme = loadTheme()
+const initialTheme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : 'system'
+applyTheme(initialTheme)
 
 const initialState = {
   // `studentId` is the pre-rename key: read it as a fallback so a session
@@ -38,8 +56,8 @@ const initialState = {
   participantId: initialSession?.participantId ?? initialSession?.studentId ?? null,
   treatment: initialSession?.treatment ?? null,
   lang: storedLang === 'de' || storedLang === 'en' ? storedLang : browserLang,
+  theme: initialTheme,
   classes: initialClasses,
-  classesAreCustom: Boolean(storedClasses && storedClasses.length > 0),
   activeClassId: initialClasses[0]?.id ?? null,
   images: [], // { id, name, url, width, height }
   currentImageId: null,
@@ -77,24 +95,29 @@ function reducer(state, action) {
       saveLang(action.lang)
       return { ...state, lang: action.lang }
     }
+    case 'SET_THEME': {
+      saveTheme(action.theme)
+      applyTheme(action.theme)
+      return { ...state, theme: action.theme }
+    }
     case 'SET_CLASSES': {
       const classes = sortClassesByName(action.classes)
       saveClasses(classes)
       const activeClassId = classes.some((c) => c.id === state.activeClassId)
         ? state.activeClassId
         : (classes[0]?.id ?? null)
-      return { ...state, classes, classesAreCustom: true, activeClassId }
+      return { ...state, classes, activeClassId }
     }
     case 'ADD_CLASS': {
       const classes = sortClassesByName([...state.classes, action.cls])
       saveClasses(classes)
-      return { ...state, classes, classesAreCustom: true, activeClassId: action.cls.id }
+      return { ...state, classes, activeClassId: action.cls.id }
     }
     case 'RESET_CLASSES': {
       clearClasses()
       const classes = sortClassesByName(classesConfig)
       const activeClassId = classes[0]?.id ?? null
-      return { ...state, classes, classesAreCustom: false, activeClassId }
+      return { ...state, classes, activeClassId }
     }
     case 'ADD_IMAGES': {
       const images = [...state.images, ...action.images]
@@ -240,6 +263,7 @@ export function AppProvider({ children }) {
     [],
   )
   const setLang = useCallback((lang) => dispatch({ type: 'SET_LANG', lang }), [])
+  const setTheme = useCallback((theme) => dispatch({ type: 'SET_THEME', theme }), [])
   const setClasses = useCallback((classes) => dispatch({ type: 'SET_CLASSES', classes }), [])
   const resetClasses = useCallback(() => dispatch({ type: 'RESET_CLASSES' }), [])
   const addClass = useCallback((cls) => dispatch({ type: 'ADD_CLASS', cls }), [])
@@ -265,6 +289,7 @@ export function AppProvider({ children }) {
       hoverShape,
       updateParticipantId,
       setLang,
+      setTheme,
       setClasses,
       resetClasses,
       addClass,
@@ -286,6 +311,7 @@ export function AppProvider({ children }) {
       hoverShape,
       updateParticipantId,
       setLang,
+      setTheme,
       setClasses,
       resetClasses,
       addClass,

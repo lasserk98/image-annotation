@@ -67,21 +67,25 @@ behind the ⓘ icon in the header (translated along with the rest of the UI).
 
 ### `src/config/classes.json` — the default class list
 
-Bundled into the app at build time:
+Bundled into the app at build time. Ships empty (`[]`) — there is no default
+class list, so classes must be set up before annotating (see below).
 
-```json
-[{ "id": "class-1", "name": "Class A", "color": "#ef4444" }]
-```
+Classes can be set up in two ways, and both are saved to that browser's
+`localStorage` so they stay active across reloads:
 
-Participants can also **load their own class list at runtime** via the
-"Load" button above the class panel — pick a local `.json` file shaped
-either as `["Name A", "Name B"]` or `[{ "name": "Name A", "color": "#ef4444" }]`
-(`id` and `color` are optional and auto-generated/assigned if omitted). Once
-loaded it's saved to that browser's `localStorage` and stays active across
-reloads until "Reset" is clicked — handy for handing out a study-specific
-class list as a plain file alongside the images, without needing a rebuild.
-`samples/classes-ci-surgery-de.json` is a real 34-class example (German
-cochlear implant surgery landmarks) you can use to try this out.
+- **Load a class list from a file** via the "Load" button above the class
+  panel — pick a local `.json` file shaped either as `["Name A", "Name B"]`
+  or `[{ "name": "Name A", "color": "#ef4444" }]` (`id` and `color` are
+  optional and auto-generated/assigned if omitted). Handy for handing out a
+  study-specific class list as a plain file alongside the images, without
+  needing a rebuild. `samples/classes-ci-surgery-de.json` is a real 34-class
+  example (German cochlear implant surgery landmarks) you can use to try
+  this out.
+- **Create classes one at a time** by typing a name and clicking "+ Add
+  class" in the panel — no file needed.
+
+"Export" downloads the current class list as JSON (for reuse or backup), and
+"Clear all" removes every class from the list.
 
 Whichever list is in use, the app **sorts it alphabetically by name** before
 displaying it, so the order in the file only affects which palette colour each

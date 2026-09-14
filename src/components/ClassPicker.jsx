@@ -13,7 +13,7 @@ const NO_SHAPES = []
 
 export default function ClassPicker() {
   const { state, setActiveClass, setClasses, resetClasses, addClass, t } = useApp()
-  const { classes, activeClassId, currentImageId, shapesByImage, classesAreCustom } = state
+  const { classes, activeClassId, currentImageId, shapesByImage } = state
   const shapes = (currentImageId && shapesByImage[currentImageId]) || NO_SHAPES
   const inputRef = useRef(null)
   const [error, setError] = useState('')
@@ -64,16 +64,17 @@ export default function ClassPicker() {
       <div className="panel-header">
         <span className="panel-title">{t('classPicker.heading')}</span>
         <span className="count-badge">{classes.length}</span>
-        {classesAreCustom && (
-          <span
-            className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
-            style={{ background: 'var(--accent-soft-strong)', color: 'var(--accent-ink)' }}
-          >
-            {t('classPicker.custom')}
-          </span>
-        )}
         <span className="flex-1" />
-        {classesAreCustom && (
+      </div>
+
+      {/* Its own row, and one that's allowed to wrap: three action buttons
+          plus the heading above would overflow the fixed-width side panel
+          on one non-wrapping line. */}
+      <div
+        className="px-3 py-2 flex-shrink-0 flex items-center flex-wrap gap-1.5"
+        style={{ borderBottom: '1px solid var(--border)' }}
+      >
+        {classes.length > 0 && (
           <button
             onClick={resetClasses}
             className="link-btn link-btn-muted"
@@ -91,6 +92,7 @@ export default function ClassPicker() {
         </button>
         <button
           onClick={() => downloadJSON('classes.json', classes)}
+          disabled={classes.length === 0}
           className="link-btn"
           title={t('classPicker.exportTitle')}
         >
@@ -151,7 +153,9 @@ export default function ClassPicker() {
       )}
 
       <div className="panel-body" aria-label={t('classPicker.heading')}>
-        {visible.length === 0 ? (
+        {classes.length === 0 ? (
+          <p className="panel-empty">{t('classPicker.empty')}</p>
+        ) : visible.length === 0 ? (
           <p className="panel-empty">{t('classPicker.noMatches', { q: query.trim() })}</p>
         ) : (
           <div className="space-y-0.5">

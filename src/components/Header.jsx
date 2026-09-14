@@ -4,6 +4,8 @@ import study from '../config/study.json'
 import { buildExportData, downloadJSON } from '../utils/export'
 import UsageModal from './UsageModal'
 import ExportWarningModal from './ExportWarningModal'
+import { ThemeIcon } from './ThemeToggle'
+import { THEME_CYCLE, THEME_LABEL_KEYS } from '../utils/theme'
 
 function EditableField({ value, placeholder, title, onCommit }) {
   const [editing, setEditing] = useState(false)
@@ -65,8 +67,8 @@ function EditableField({ value, placeholder, title, onCommit }) {
 }
 
 export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRight }) {
-  const { state, logout, clearJustLoggedIn, updateParticipantId, setLang, t } = useApp()
-  const { participantId, treatment, images, shapesByImage, classes, lang } = state
+  const { state, logout, clearJustLoggedIn, updateParticipantId, setLang, setTheme, t } = useApp()
+  const { participantId, treatment, images, shapesByImage, classes, lang, theme } = state
   const [showUsage, setShowUsage] = useState(false)
   const [showExportWarning, setShowExportWarning] = useState(false)
 
@@ -235,6 +237,14 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
             </p>
           )}
         </div>
+        <button
+          onClick={() => setTheme(THEME_CYCLE[theme])}
+          className="toolbar-btn"
+          title={t('header.themeTitle', { mode: t(THEME_LABEL_KEYS[theme]) })}
+          aria-label={t('header.themeTitle', { mode: t(THEME_LABEL_KEYS[theme]) })}
+        >
+          <ThemeIcon theme={theme} />
+        </button>
         <button
           onClick={() => setLang(lang === 'en' ? 'de' : 'en')}
           className="toolbar-btn"
