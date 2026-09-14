@@ -57,6 +57,10 @@ const initialState = {
   treatment: initialSession?.treatment ?? null,
   lang: storedLang === 'de' || storedLang === 'en' ? storedLang : browserLang,
   theme: initialTheme,
+  // Never persisted and never read from storage at init — Creator Mode
+  // always starts locked on a fresh page load, by design (see study.json's
+  // creatorPassword).
+  creatorMode: false,
   classes: initialClasses,
   activeClassId: initialClasses[0]?.id ?? null,
   images: [], // { id, name, url, width, height }
@@ -119,6 +123,26 @@ function reducer(state, action) {
       const activeClassId = classes[0]?.id ?? null
       return { ...state, classes, activeClassId }
     }
+    case 'RENAME_CLASS': {
+      // Renaming never touches `id`, so every shape already tagged with this
+      // class stays correctly labeled — only the sort order can change.
+      const classes = sortClassesByName(
+        state.classes.map((c) => (c.id === action.classId ? { ...c, name: action.name } : c)),
+      )
+      saveClasses(classes)
+      return { ...state, classes }
+    }
+    case 'DELETE_CLASS': {
+      const classes = state.classes.filter((c) => c.id !== action.classId)
+      saveClasses(classes)
+      const activeClassId =
+        state.activeClassId === action.classId ? (classes[0]?.id ?? null) : state.activeClassId
+      return { ...state, classes, activeClassId }
+    }
+    case 'ENTER_CREATOR_MODE':
+      return { ...state, creatorMode: true }
+    case 'EXIT_CREATOR_MODE':
+      return { ...state, creatorMode: false }
     case 'ADD_IMAGES': {
       const images = [...state.images, ...action.images]
       const shapesByImage = { ...state.shapesByImage }
@@ -267,6 +291,13 @@ export function AppProvider({ children }) {
   const setClasses = useCallback((classes) => dispatch({ type: 'SET_CLASSES', classes }), [])
   const resetClasses = useCallback(() => dispatch({ type: 'RESET_CLASSES' }), [])
   const addClass = useCallback((cls) => dispatch({ type: 'ADD_CLASS', cls }), [])
+  const renameClass = useCallback(
+    (classId, name) => dispatch({ type: 'RENAME_CLASS', classId, name }),
+    [],
+  )
+  const deleteClass = useCallback((classId) => dispatch({ type: 'DELETE_CLASS', classId }), [])
+  const enterCreatorMode = useCallback(() => dispatch({ type: 'ENTER_CREATOR_MODE' }), [])
+  const exitCreatorMode = useCallback(() => dispatch({ type: 'EXIT_CREATOR_MODE' }), [])
 
   const lang = state.lang
   const t = useCallback((key, vars) => translate(lang, key, vars), [lang])
@@ -293,6 +324,10 @@ export function AppProvider({ children }) {
       setClasses,
       resetClasses,
       addClass,
+      renameClass,
+      deleteClass,
+      enterCreatorMode,
+      exitCreatorMode,
     }),
     [
       state,
@@ -315,6 +350,10 @@ export function AppProvider({ children }) {
       setClasses,
       resetClasses,
       addClass,
+      renameClass,
+      deleteClass,
+      enterCreatorMode,
+      exitCreatorMode,
     ],
   )
 

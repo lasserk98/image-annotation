@@ -35,6 +35,10 @@ npm run preview # serve the production build locally to sanity-check it
 
 ## How participants use it
 
+Classes must already be set up (see [Creator Mode](#creator-mode-vs-annotation-mode)
+below) before handing the app to a participant — Annotation Mode, which is
+what they'll see, can only pick from an existing list.
+
 1. Enter a participant ID (any non-empty value — there's no roster to validate
    against, but it's editable later via the ✎ next to Export in case of a typo).
 2. Drag & drop, or click "+ Add", to load one or more local images. Images are
@@ -65,10 +69,28 @@ behind the ⓘ icon in the header (translated along with the rest of the UI).
 
 ## Configuring the study
 
+### Creator Mode vs. Annotation Mode
+
+The app has two modes, toggled with the padlock icon in the header:
+
+- **Annotation Mode** (the default) can only pick an existing class and draw
+  shapes with it. Nothing about the class list can be created, renamed, or
+  deleted here — this is what participants use.
+- **Creator Mode** unlocks everything below: creating, renaming, and deleting
+  classes, plus loading/exporting a class list. Unlocking it requires the
+  password in `src/config/study.json`'s `creatorPassword` field, and it
+  **never persists** — every fresh page load starts back in Annotation Mode.
+
+That password is a speed bump against a participant accidentally clicking
+into class management, **not real access control**: this app has no backend,
+so the password ships inside the public JS bundle and can be read (or the
+check bypassed entirely) by anyone using their browser's dev tools. Don't
+rely on it to keep out a motivated user.
+
 ### `src/config/classes.json` — the default class list
 
 Bundled into the app at build time. Ships empty (`[]`) — there is no default
-class list, so classes must be set up before annotating (see below).
+class list, so classes must be set up in Creator Mode before annotating.
 
 Classes can be set up in two ways, and both are saved to that browser's
 `localStorage` so they stay active across reloads:
@@ -82,7 +104,10 @@ Classes can be set up in two ways, and both are saved to that browser's
   example (German cochlear implant surgery landmarks) you can use to try
   this out.
 - **Create classes one at a time** by typing a name and clicking "+ Add
-  class" in the panel — no file needed.
+  class" in the panel — no file needed. Each class can also be renamed in
+  place, or deleted with the ✕ next to it (deleting a class already in use
+  asks for confirmation first, since existing shapes are left without a
+  class and need reassigning afterwards in the instances panel).
 
 "Export" downloads the current class list as JSON (for reuse or backup), and
 "Clear all" removes every class from the list.
@@ -94,13 +119,14 @@ with `A`) and digit-aware (`Class 2` before `Class 10`), and it is pinned to a
 single locale so every participant gets the same order — and therefore the same
 `1`-`9` shortcut mapping — regardless of their browser's language settings.
 
-### `src/config/study.json` — study name, instructions, treatments
+### `src/config/study.json` — study name, instructions, treatments, creator password
 
 ```json
 {
   "studyName": { "en": "Segmentation Annotation Study", "de": "…" },
   "instructions": { "en": "Shown in the usage (ⓘ) modal.", "de": "…" },
-  "treatments": []
+  "treatments": [],
+  "creatorPassword": "changeme"
 }
 ```
 
@@ -110,7 +136,8 @@ languages) or `{ "en": "...", "de": "..." }` for translated copy. If
 their export). You can also assign a treatment via URL, e.g.
 `https://your-deploy-url/?treatment=A` — this skips the picker and locks the
 treatment for that link, handy for sending different participants different
-links.
+links. `creatorPassword` gates Creator Mode — see above for what it does and
+does not protect against.
 
 ### Adding more UI languages
 

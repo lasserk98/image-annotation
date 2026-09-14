@@ -37,13 +37,13 @@ export default function InstanceList() {
         indexInClass: i + 1,
         cls: classes.find((c) => c.id === classId) ?? {
           id: classId,
-          name: classId,
+          name: t('instances.unknownClass'),
           color: UNKNOWN_COLOR,
         },
         known: order.has(classId),
       })),
     )
-  }, [shapes, classes])
+  }, [shapes, classes, t])
 
   // When a shape is picked on the canvas, bring its row into view.
   useEffect(() => {

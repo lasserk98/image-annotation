@@ -29,6 +29,22 @@ export const translations = {
     'header.themeDark': 'Dark',
     'header.toggleLeftPanel': 'Show/hide the classes & images panel',
     'header.toggleRightPanel': 'Show/hide the instances panel',
+    'header.creatorModeBadge': 'CREATOR MODE',
+    'header.creatorModeEnterTitle': 'Enter Creator Mode (password required) — create, rename, or delete classes',
+    'header.creatorModeExitTitle': 'Exit Creator Mode, back to Annotation Mode',
+
+    'creatorModal.title': 'Enter Creator Mode',
+    'creatorModal.description': 'This unlocks creating, renaming, and deleting classes. It\'s a speed bump against accidental changes, not real security — anyone with the password (or dev tools) can get in.',
+    'creatorModal.passwordLabel': 'Password',
+    'creatorModal.submit': 'Unlock',
+    'creatorModal.cancel': 'Cancel',
+    'creatorModal.wrongPassword': 'Incorrect password.',
+
+    'deleteClassModal.title': 'Delete “{name}”?',
+    'deleteClassModal.body':
+      '{n} shape(s) currently use this class. Deleting it will leave them without a class — you can reassign them afterwards in the instances panel.',
+    'deleteClassModal.cancel': 'Cancel',
+    'deleteClassModal.confirm': 'Delete anyway',
 
     'classPicker.heading': 'Classes',
     'classPicker.load': 'Load',
@@ -36,6 +52,7 @@ export const translations = {
     'classPicker.reset': 'Clear all',
     'classPicker.resetTitle': 'Remove every class from the list',
     'classPicker.empty': 'No classes yet. Create one below, or load a class list from a JSON file.',
+    'classPicker.emptyLocked': 'No classes available yet. Ask your study coordinator to set them up in Creator Mode.',
     'classPicker.filterPlaceholder': 'Filter classes…',
     'classPicker.noMatches': 'No class matches “{q}”.',
     'classPicker.activeTitle': 'Active class for new shapes',
@@ -44,6 +61,8 @@ export const translations = {
     'classPicker.newClassPlaceholder': 'New class name…',
     'classPicker.addClass': '+ Add class',
     'classPicker.addClassTitle': 'Create a new class and make it active',
+    'classPicker.renameTitle': 'Rename this class',
+    'classPicker.deleteTitle': 'Delete this class',
 
     'imageGallery.heading': 'Images',
     'imageGallery.add': '+ Add',
@@ -67,6 +86,7 @@ export const translations = {
     'export.exportAnyway': 'Export anyway',
 
     'instances.heading': 'Instances',
+    'instances.unknownClass': 'Unknown class',
     'instances.empty': 'No instances yet. Pick a class on the left, then click “+ New shape” and outline a structure on the image.',
     'instances.emptyNoImage': 'Add an image to start marking instances.',
     'instances.deleteTitle': 'Delete this instance',
@@ -97,7 +117,7 @@ export const translations = {
     'usage.title': 'Usage & shortcuts',
     'usage.instructionsHeading': 'Study instructions',
     'usage.stepsHeading': 'How to annotate',
-    'usage.step1': 'Set up your classes first: load a class list from a JSON file using "Load" in the Classes panel, or type a new class name and click "+ Add class" to create them one at a time. There are no classes to start with. Use "Export" to download the current class list.',
+    'usage.step1': 'Set up your classes first: unlock Creator Mode (the lock icon in the header) to load a class list from a JSON file, create/rename/delete classes one at a time, or export the current list. There are no classes to start with. Annotation Mode can only pick from an already-set-up list.',
     'usage.step2': 'Load local images by dragging them (or a whole folder) in, or by clicking "+ Add" / "+ Add folder". They never leave your browser.',
     'usage.step3': 'Pick a class in the left panel, or press a number key.',
     'usage.step4': 'Click "+ New shape", then click points on the image to outline a structure. Click the first point again (or press Enter) to close it.',
@@ -150,6 +170,22 @@ export const translations = {
     'header.themeDark': 'Dunkel',
     'header.toggleLeftPanel': 'Bereich „Klassen & Bilder“ ein-/ausblenden',
     'header.toggleRightPanel': 'Bereich „Instanzen“ ein-/ausblenden',
+    'header.creatorModeBadge': 'ERSTELLERMODUS',
+    'header.creatorModeEnterTitle': 'Erstellermodus aktivieren (Passwort erforderlich) — Klassen anlegen, umbenennen oder löschen',
+    'header.creatorModeExitTitle': 'Erstellermodus verlassen, zurück zum Annotationsmodus',
+
+    'creatorModal.title': 'Erstellermodus aktivieren',
+    'creatorModal.description': 'Damit können Klassen angelegt, umbenannt und gelöscht werden. Das ist eine Bremse gegen versehentliche Änderungen, keine echte Sicherheitsmaßnahme — mit dem Passwort (oder den Entwicklertools) kommt jeder hinein.',
+    'creatorModal.passwordLabel': 'Passwort',
+    'creatorModal.submit': 'Entsperren',
+    'creatorModal.cancel': 'Abbrechen',
+    'creatorModal.wrongPassword': 'Falsches Passwort.',
+
+    'deleteClassModal.title': '„{name}“ löschen?',
+    'deleteClassModal.body':
+      '{n} Form(en) verwenden derzeit diese Klasse. Beim Löschen bleiben sie ohne Klasse zurück — du kannst sie danach im Instanzen-Bereich neu zuweisen.',
+    'deleteClassModal.cancel': 'Abbrechen',
+    'deleteClassModal.confirm': 'Trotzdem löschen',
 
     'classPicker.heading': 'Klassen',
     'classPicker.load': 'Laden',
@@ -157,6 +193,7 @@ export const translations = {
     'classPicker.reset': 'Alle entfernen',
     'classPicker.resetTitle': 'Alle Klassen aus der Liste entfernen',
     'classPicker.empty': 'Noch keine Klassen. Lege unten eine an oder lade eine Klassenliste aus einer JSON-Datei.',
+    'classPicker.emptyLocked': 'Noch keine Klassen verfügbar. Bitte die Studienleitung, sie im Erstellermodus anzulegen.',
     'classPicker.filterPlaceholder': 'Klassen filtern …',
     'classPicker.noMatches': 'Keine Klasse passt zu „{q}“.',
     'classPicker.activeTitle': 'Aktive Klasse für neue Formen',
@@ -165,6 +202,8 @@ export const translations = {
     'classPicker.newClassPlaceholder': 'Name der neuen Klasse …',
     'classPicker.addClass': '+ Klasse hinzufügen',
     'classPicker.addClassTitle': 'Neue Klasse anlegen und aktivieren',
+    'classPicker.renameTitle': 'Diese Klasse umbenennen',
+    'classPicker.deleteTitle': 'Diese Klasse löschen',
 
     'imageGallery.heading': 'Bilder',
     'imageGallery.add': '+ Hinzufügen',
@@ -188,6 +227,7 @@ export const translations = {
     'export.exportAnyway': 'Trotzdem exportieren',
 
     'instances.heading': 'Instanzen',
+    'instances.unknownClass': 'Unbekannte Klasse',
     'instances.empty': 'Noch keine Instanzen. Wähle links eine Klasse, klicke dann auf „+ Neue Form“ und umrande eine Struktur im Bild.',
     'instances.emptyNoImage': 'Füge ein Bild hinzu, um Instanzen zu markieren.',
     'instances.deleteTitle': 'Diese Instanz löschen',
@@ -218,7 +258,7 @@ export const translations = {
     'usage.title': 'Anleitung & Kurzbefehle',
     'usage.instructionsHeading': 'Studienanweisungen',
     'usage.stepsHeading': 'So annotierst du',
-    'usage.step1': 'Lege zuerst deine Klassen an: Lade über „Laden“ im Bereich „Klassen“ eine Klassenliste aus einer JSON-Datei, oder gib einen neuen Klassennamen ein und klicke auf „+ Klasse hinzufügen“, um sie einzeln anzulegen. Es sind zu Beginn keine Klassen vorhanden. Über „Exportieren“ kannst du die aktuelle Klassenliste herunterladen.',
+    'usage.step1': 'Lege zuerst deine Klassen an: Entsperre den Erstellermodus (Schloss-Symbol im Kopfbereich), um eine Klassenliste aus einer JSON-Datei zu laden, Klassen einzeln anzulegen, umzubenennen oder zu löschen, oder die aktuelle Liste zu exportieren. Es sind zu Beginn keine Klassen vorhanden. Im Annotationsmodus kann nur aus einer bereits eingerichteten Liste gewählt werden.',
     'usage.step2': 'Lade lokale Bilder per Drag & Drop (auch ganze Ordner) oder über „+ Hinzufügen“ / „+ Ordner hinzufügen“. Sie verlassen nie deinen Browser.',
     'usage.step3': 'Wähle links eine Klasse aus, oder drücke eine Zifferntaste.',
     'usage.step4': 'Klicke auf „+ Neue Form“ und dann auf Punkte im Bild, um eine Struktur zu umranden. Klicke erneut auf den ersten Punkt (oder drücke Enter), um die Form zu schließen.',

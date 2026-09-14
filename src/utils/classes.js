@@ -56,6 +56,12 @@ function slug(name) {
   )
 }
 
+function assertUniqueName(name, existingClasses, excludeId) {
+  if (existingClasses.some((c) => c.id !== excludeId && c.name.toLowerCase() === name.toLowerCase())) {
+    throw new Error(`A class named "${name}" already exists.`)
+  }
+}
+
 // Adds one class to an existing list, e.g. when a participant types a class
 // name while annotating instead of picking from the preset list. Mirrors
 // parseClasses' id-slugging/dedupe so a class made this way is
@@ -65,15 +71,37 @@ export function createClass(name, existingClasses) {
   if (!trimmed) {
     throw new Error('Enter a class name.')
   }
-  if (existingClasses.some((c) => c.name.toLowerCase() === trimmed.toLowerCase())) {
-    throw new Error(`A class named "${trimmed}" already exists.`)
-  }
+  assertUniqueName(trimmed, existingClasses)
   const base = slug(trimmed)
   const seen = new Set(existingClasses.map((c) => c.id))
   let id = base
   let n = 2
   while (seen.has(id)) id = `${base}-${n++}`
   return { id, name: trimmed, color: PALETTE[existingClasses.length % PALETTE.length] }
+}
+
+// Validates a rename in place: the id (and therefore every shape already
+// tagged with it) never changes, only the display name — so the only checks
+// needed are "non-empty" and "no collision with a *different* class".
+export function validateRenamedName(id, name, existingClasses) {
+  const trimmed = String(name).trim()
+  if (!trimmed) {
+    throw new Error('Enter a class name.')
+  }
+  assertUniqueName(trimmed, existingClasses, id)
+  return trimmed
+}
+
+// Total shapes across every loaded image that reference this class — used to
+// warn before a destructive delete rather than silently orphaning shapes.
+export function countClassUsage(classId, shapesByImage) {
+  let count = 0
+  for (const shapes of Object.values(shapesByImage)) {
+    for (const shape of shapes) {
+      if (shape.classId === classId) count++
+    }
+  }
+  return count
 }
 
 // Accepts either ["Name", ...] or [{ name, color?, id? }, ...] so a class
