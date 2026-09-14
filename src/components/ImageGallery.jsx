@@ -10,6 +10,7 @@ export default function ImageGallery() {
   const folderInputRef = useRef(null)
   const [isDragging, setDragging] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleFiles(fileList) {
     setLoading(true)
@@ -60,6 +61,16 @@ export default function ImageGallery() {
         />
       </div>
 
+      {error && (
+        <p
+          className="text-xs px-3 py-2 flex-shrink-0"
+          style={{ color: 'var(--danger)', background: 'var(--danger-soft)' }}
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
+
       <div
         className="panel-body"
         onDragOver={(e) => {
@@ -70,12 +81,17 @@ export default function ImageGallery() {
         onDrop={async (e) => {
           e.preventDefault()
           setDragging(false)
-          // A dropped folder and dropped files land in the same
-          // dataTransfer — collectFilesFromDataTransfer walks any folder
-          // entries and flattens everything to a plain File[], so both
-          // cases feed the exact same handleFiles path below.
-          const files = await collectFilesFromDataTransfer(e.dataTransfer)
-          if (files.length) handleFiles(files)
+          setError('')
+          try {
+            // A dropped folder and dropped files land in the same
+            // dataTransfer — collectFilesFromDataTransfer walks any folder
+            // entries and flattens everything to a plain File[], so both
+            // cases feed the exact same handleFiles path below.
+            const files = await collectFilesFromDataTransfer(e.dataTransfer)
+            if (files.length) await handleFiles(files)
+          } catch {
+            setError(t('imageGallery.dropError'))
+          }
         }}
         style={isDragging ? { background: 'var(--accent-soft)' } : undefined}
       >

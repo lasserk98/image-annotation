@@ -9,7 +9,11 @@ function loadOneImage(file) {
     img.onload = () => {
       resolve({
         id: uid('img'),
-        name: file.name,
+        // A folder walk stamps `relativePath`, and an <input webkitdirectory>
+        // picker sets `webkitRelativePath` natively — either lets same-named
+        // files from different subfolders stay distinguishable instead of
+        // colliding under one bare basename.
+        name: file.relativePath || file.webkitRelativePath || file.name,
         url,
         width: img.naturalWidth,
         height: img.naturalHeight,
