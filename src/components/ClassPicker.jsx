@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { parseClasses, tintColor } from '../utils/classes'
+import { createClass, parseClasses, tintColor } from '../utils/classes'
+import { downloadJSON } from '../utils/export'
 
 // Above this many classes the list stops being scannable by eye, so a filter
 // box appears. The sample surgical class list has 34 entries.
@@ -11,12 +12,13 @@ const FILTER_THRESHOLD = 8
 const NO_SHAPES = []
 
 export default function ClassPicker() {
-  const { state, setActiveClass, setClasses, resetClasses, t } = useApp()
+  const { state, setActiveClass, setClasses, resetClasses, addClass, t } = useApp()
   const { classes, activeClassId, currentImageId, shapesByImage, classesAreCustom } = state
   const shapes = (currentImageId && shapesByImage[currentImageId]) || NO_SHAPES
   const inputRef = useRef(null)
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
+  const [newClassName, setNewClassName] = useState('')
 
   const countByClass = useMemo(() => {
     const counts = {}
@@ -42,6 +44,18 @@ export default function ClassPicker() {
       setQuery('')
     } catch (err) {
       setError(err.message || 'Could not read that file.')
+    }
+  }
+
+  function handleCreateClass(e) {
+    e.preventDefault()
+    setError('')
+    try {
+      const cls = createClass(newClassName, classes)
+      addClass(cls)
+      setNewClassName('')
+    } catch (err) {
+      setError(err.message || 'Could not create that class.')
     }
   }
 
@@ -75,6 +89,13 @@ export default function ClassPicker() {
         >
           {t('classPicker.load')}
         </button>
+        <button
+          onClick={() => downloadJSON('classes.json', classes)}
+          className="link-btn"
+          title={t('classPicker.exportTitle')}
+        >
+          {t('classPicker.export')}
+        </button>
         <input
           ref={inputRef}
           type="file"
@@ -87,6 +108,24 @@ export default function ClassPicker() {
           }}
         />
       </div>
+
+      <form
+        onSubmit={handleCreateClass}
+        className="px-3 py-2 flex-shrink-0 flex items-center gap-1.5"
+        style={{ borderBottom: '1px solid var(--border)' }}
+      >
+        <input
+          type="text"
+          value={newClassName}
+          onChange={(e) => setNewClassName(e.target.value)}
+          placeholder={t('classPicker.newClassPlaceholder')}
+          className="field field-sm flex-1"
+          aria-label={t('classPicker.newClassPlaceholder')}
+        />
+        <button type="submit" className="link-btn" title={t('classPicker.addClassTitle')}>
+          {t('classPicker.addClass')}
+        </button>
+      </form>
 
       {classes.length > FILTER_THRESHOLD && (
         <div className="px-3 py-2 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>

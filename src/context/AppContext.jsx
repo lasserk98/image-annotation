@@ -85,6 +85,11 @@ function reducer(state, action) {
         : (classes[0]?.id ?? null)
       return { ...state, classes, classesAreCustom: true, activeClassId }
     }
+    case 'ADD_CLASS': {
+      const classes = sortClassesByName([...state.classes, action.cls])
+      saveClasses(classes)
+      return { ...state, classes, classesAreCustom: true, activeClassId: action.cls.id }
+    }
     case 'RESET_CLASSES': {
       clearClasses()
       const classes = sortClassesByName(classesConfig)
@@ -108,6 +113,8 @@ function reducer(state, action) {
       }
     }
     case 'REMOVE_IMAGE': {
+      const removed = state.images.find((i) => i.id === action.imageId)
+      if (removed) URL.revokeObjectURL(removed.url)
       const images = state.images.filter((i) => i.id !== action.imageId)
       const shapesByImage = { ...state.shapesByImage }
       const historyByImage = { ...state.historyByImage }
@@ -235,6 +242,7 @@ export function AppProvider({ children }) {
   const setLang = useCallback((lang) => dispatch({ type: 'SET_LANG', lang }), [])
   const setClasses = useCallback((classes) => dispatch({ type: 'SET_CLASSES', classes }), [])
   const resetClasses = useCallback(() => dispatch({ type: 'RESET_CLASSES' }), [])
+  const addClass = useCallback((cls) => dispatch({ type: 'ADD_CLASS', cls }), [])
 
   const lang = state.lang
   const t = useCallback((key, vars) => translate(lang, key, vars), [lang])
@@ -259,6 +267,7 @@ export function AppProvider({ children }) {
       setLang,
       setClasses,
       resetClasses,
+      addClass,
     }),
     [
       state,
@@ -279,6 +288,7 @@ export function AppProvider({ children }) {
       setLang,
       setClasses,
       resetClasses,
+      addClass,
     ],
   )
 

@@ -56,6 +56,26 @@ function slug(name) {
   )
 }
 
+// Adds one class to an existing list, e.g. when a participant types a class
+// name while annotating instead of picking from the preset list. Mirrors
+// parseClasses' id-slugging/dedupe so a class made this way is
+// indistinguishable from one loaded from JSON.
+export function createClass(name, existingClasses) {
+  const trimmed = String(name).trim()
+  if (!trimmed) {
+    throw new Error('Enter a class name.')
+  }
+  if (existingClasses.some((c) => c.name.toLowerCase() === trimmed.toLowerCase())) {
+    throw new Error(`A class named "${trimmed}" already exists.`)
+  }
+  const base = slug(trimmed)
+  const seen = new Set(existingClasses.map((c) => c.id))
+  let id = base
+  let n = 2
+  while (seen.has(id)) id = `${base}-${n++}`
+  return { id, name: trimmed, color: PALETTE[existingClasses.length % PALETTE.length] }
+}
+
 // Accepts either ["Name", ...] or [{ name, color?, id? }, ...] so a class
 // list can be authored by hand with minimal ceremony.
 export function parseClasses(json) {
