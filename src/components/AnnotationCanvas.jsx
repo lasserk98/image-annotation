@@ -136,6 +136,10 @@ export default function AnnotationCanvas() {
   }
 
   function startDraw() {
+    // A shape's classId comes straight from activeClassId (see finishDraw
+    // below) — with no class selected (now reachable since the default
+    // class list is empty) that would silently commit a null-classId shape.
+    if (!activeClassId) return
     setMode('draw')
     setDraftPoints([])
     selectShape(null)
@@ -427,8 +431,11 @@ export default function AnnotationCanvas() {
                   />
 
                   {/* Name the shape only while it is the focus of attention —
-                      labelling every polygon at once buries the image. */}
-                  {emphasised && cls && (
+                      labelling every polygon at once buries the image. A
+                      shape whose class was deleted (in Creator Mode) still
+                      gets a clear label rather than none at all, so it's
+                      obviously in need of reassignment. */}
+                  {emphasised && (
                     <text
                       x={centre.x}
                       y={centre.y}
@@ -446,7 +453,7 @@ export default function AnnotationCanvas() {
                         userSelect: 'none',
                       }}
                     >
-                      {cls.name}
+                      {cls?.name ?? t('instances.unknownClass')}
                     </text>
                   )}
 

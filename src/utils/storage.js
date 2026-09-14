@@ -1,6 +1,7 @@
 const SESSION_KEY = 'seg-annotate:session'
 const CLASSES_KEY = 'seg-annotate:classes'
 const LANG_KEY = 'seg-annotate:lang'
+const THEME_KEY = 'seg-annotate:theme'
 
 export function loadSession() {
   try {
@@ -65,6 +66,28 @@ export function loadLang() {
 export function saveLang(lang) {
   try {
     localStorage.setItem(LANG_KEY, lang)
+  } catch {
+    // ignore
+  }
+}
+
+// 'light' | 'dark' means an explicit override; no stored value (null) means
+// "follow the OS/browser preference", which is the default.
+export function loadTheme() {
+  try {
+    return localStorage.getItem(THEME_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function saveTheme(theme) {
+  try {
+    if (theme === 'system') {
+      localStorage.removeItem(THEME_KEY)
+    } else {
+      localStorage.setItem(THEME_KEY, theme)
+    }
   } catch {
     // ignore
   }

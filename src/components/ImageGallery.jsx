@@ -1,13 +1,16 @@
 import { useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { filesToImages } from '../utils/loadImages'
+import { collectFilesFromDataTransfer } from '../utils/collectFiles'
 
 export default function ImageGallery() {
   const { state, addImages, removeImage, selectImage, t } = useApp()
   const { images, currentImageId, shapesByImage } = state
   const inputRef = useRef(null)
+  const folderInputRef = useRef(null)
   const [isDragging, setDragging] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleFiles(fileList) {
     setLoading(true)
@@ -28,6 +31,13 @@ export default function ImageGallery() {
         <button onClick={() => inputRef.current?.click()} className="link-btn">
           {t('imageGallery.add')}
         </button>
+        <button
+          onClick={() => folderInputRef.current?.click()}
+          className="link-btn"
+          title={t('imageGallery.addFolderTitle')}
+        >
+          {t('imageGallery.addFolder')}
+        </button>
         <input
           ref={inputRef}
           type="file"
@@ -36,7 +46,30 @@ export default function ImageGallery() {
           hidden
           onChange={(e) => e.target.files && handleFiles(e.target.files)}
         />
+        <input
+          ref={folderInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          webkitdirectory=""
+          directory=""
+          hidden
+          onChange={(e) => {
+            if (e.target.files?.length) handleFiles(e.target.files)
+            e.target.value = ''
+          }}
+        />
       </div>
+
+      {error && (
+        <p
+          className="text-xs px-3 py-2 flex-shrink-0"
+          style={{ color: 'var(--danger)', background: 'var(--danger-soft)' }}
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
 
       <div
         className="panel-body"
@@ -45,10 +78,20 @@ export default function ImageGallery() {
           setDragging(true)
         }}
         onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
+        onDrop={async (e) => {
           e.preventDefault()
           setDragging(false)
-          if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files)
+          setError('')
+          try {
+            // A dropped folder and dropped files land in the same
+            // dataTransfer — collectFilesFromDataTransfer walks any folder
+            // entries and flattens everything to a plain File[], so both
+            // cases feed the exact same handleFiles path below.
+            const files = await collectFilesFromDataTransfer(e.dataTransfer)
+            if (files.length) await handleFiles(files)
+          } catch {
+            setError(t('imageGallery.dropError'))
+          }
         }}
         style={isDragging ? { background: 'var(--accent-soft)' } : undefined}
       >

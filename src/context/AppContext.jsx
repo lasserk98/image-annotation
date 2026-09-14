@@ -9,6 +9,8 @@ import {
   clearClasses,
   loadLang,
   saveLang,
+  loadTheme,
+  saveTheme,
 } from '../utils/storage'
 import { sortClassesByName } from '../utils/classes'
 import { translate } from '../i18n/translations'
@@ -21,6 +23,19 @@ function emptyHistory() {
   return { past: [], future: [] }
 }
 
+// Applying the attribute directly (rather than only storing `theme` in
+// state) is what lets the CSS overrides in index.css win over
+// prefers-color-scheme in both directions — see the :root[data-theme=...]
+// rules there.
+function applyTheme(theme) {
+  if (typeof document === 'undefined') return
+  if (theme === 'system') {
+    delete document.documentElement.dataset.theme
+  } else {
+    document.documentElement.dataset.theme = theme
+  }
+}
+
 const initialSession = loadSession()
 const storedClasses = loadClasses()
 // Every class list is sorted on the way in — whether it came from the bundled
@@ -31,6 +46,9 @@ const initialClasses = sortClassesByName(
 )
 const storedLang = loadLang()
 const browserLang = typeof navigator !== 'undefined' && navigator.language?.startsWith('de') ? 'de' : 'en'
+const storedTheme = loadTheme()
+const initialTheme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : 'system'
+applyTheme(initialTheme)
 
 const initialState = {
   // `studentId` is the pre-rename key: read it as a fallback so a session
@@ -38,8 +56,12 @@ const initialState = {
   participantId: initialSession?.participantId ?? initialSession?.studentId ?? null,
   treatment: initialSession?.treatment ?? null,
   lang: storedLang === 'de' || storedLang === 'en' ? storedLang : browserLang,
+  theme: initialTheme,
+  // Never persisted and never read from storage at init — Creator Mode
+  // always starts locked on a fresh page load, by design (see study.json's
+  // creatorPassword).
+  creatorMode: false,
   classes: initialClasses,
-  classesAreCustom: Boolean(storedClasses && storedClasses.length > 0),
   activeClassId: initialClasses[0]?.id ?? null,
   images: [], // { id, name, url, width, height }
   currentImageId: null,
@@ -77,20 +99,50 @@ function reducer(state, action) {
       saveLang(action.lang)
       return { ...state, lang: action.lang }
     }
+    case 'SET_THEME': {
+      saveTheme(action.theme)
+      applyTheme(action.theme)
+      return { ...state, theme: action.theme }
+    }
     case 'SET_CLASSES': {
       const classes = sortClassesByName(action.classes)
       saveClasses(classes)
       const activeClassId = classes.some((c) => c.id === state.activeClassId)
         ? state.activeClassId
         : (classes[0]?.id ?? null)
-      return { ...state, classes, classesAreCustom: true, activeClassId }
+      return { ...state, classes, activeClassId }
+    }
+    case 'ADD_CLASS': {
+      const classes = sortClassesByName([...state.classes, action.cls])
+      saveClasses(classes)
+      return { ...state, classes, activeClassId: action.cls.id }
     }
     case 'RESET_CLASSES': {
       clearClasses()
       const classes = sortClassesByName(classesConfig)
       const activeClassId = classes[0]?.id ?? null
-      return { ...state, classes, classesAreCustom: false, activeClassId }
+      return { ...state, classes, activeClassId }
     }
+    case 'RENAME_CLASS': {
+      // Renaming never touches `id`, so every shape already tagged with this
+      // class stays correctly labeled — only the sort order can change.
+      const classes = sortClassesByName(
+        state.classes.map((c) => (c.id === action.classId ? { ...c, name: action.name } : c)),
+      )
+      saveClasses(classes)
+      return { ...state, classes }
+    }
+    case 'DELETE_CLASS': {
+      const classes = state.classes.filter((c) => c.id !== action.classId)
+      saveClasses(classes)
+      const activeClassId =
+        state.activeClassId === action.classId ? (classes[0]?.id ?? null) : state.activeClassId
+      return { ...state, classes, activeClassId }
+    }
+    case 'ENTER_CREATOR_MODE':
+      return { ...state, creatorMode: true }
+    case 'EXIT_CREATOR_MODE':
+      return { ...state, creatorMode: false }
     case 'ADD_IMAGES': {
       const images = [...state.images, ...action.images]
       const shapesByImage = { ...state.shapesByImage }
@@ -108,6 +160,8 @@ function reducer(state, action) {
       }
     }
     case 'REMOVE_IMAGE': {
+      const removed = state.images.find((i) => i.id === action.imageId)
+      if (removed) URL.revokeObjectURL(removed.url)
       const images = state.images.filter((i) => i.id !== action.imageId)
       const shapesByImage = { ...state.shapesByImage }
       const historyByImage = { ...state.historyByImage }
@@ -233,8 +287,17 @@ export function AppProvider({ children }) {
     [],
   )
   const setLang = useCallback((lang) => dispatch({ type: 'SET_LANG', lang }), [])
+  const setTheme = useCallback((theme) => dispatch({ type: 'SET_THEME', theme }), [])
   const setClasses = useCallback((classes) => dispatch({ type: 'SET_CLASSES', classes }), [])
   const resetClasses = useCallback(() => dispatch({ type: 'RESET_CLASSES' }), [])
+  const addClass = useCallback((cls) => dispatch({ type: 'ADD_CLASS', cls }), [])
+  const renameClass = useCallback(
+    (classId, name) => dispatch({ type: 'RENAME_CLASS', classId, name }),
+    [],
+  )
+  const deleteClass = useCallback((classId) => dispatch({ type: 'DELETE_CLASS', classId }), [])
+  const enterCreatorMode = useCallback(() => dispatch({ type: 'ENTER_CREATOR_MODE' }), [])
+  const exitCreatorMode = useCallback(() => dispatch({ type: 'EXIT_CREATOR_MODE' }), [])
 
   const lang = state.lang
   const t = useCallback((key, vars) => translate(lang, key, vars), [lang])
@@ -257,8 +320,14 @@ export function AppProvider({ children }) {
       hoverShape,
       updateParticipantId,
       setLang,
+      setTheme,
       setClasses,
       resetClasses,
+      addClass,
+      renameClass,
+      deleteClass,
+      enterCreatorMode,
+      exitCreatorMode,
     }),
     [
       state,
@@ -277,8 +346,14 @@ export function AppProvider({ children }) {
       hoverShape,
       updateParticipantId,
       setLang,
+      setTheme,
       setClasses,
       resetClasses,
+      addClass,
+      renameClass,
+      deleteClass,
+      enterCreatorMode,
+      exitCreatorMode,
     ],
   )
 

@@ -36,8 +36,14 @@
   --shadow-lg: 0 12px 32px rgb(16 18 23 / 0.14), 0 2px 8px rgb(16 18 23 / 0.06);
 }
 
+/* The manual toggle (Header's theme button, backed by `data-theme` on
+   <html>) has to win over the OS preference in both directions:
+   `:not([data-theme="light"])` stops this block from applying when someone
+   picked "light" on a dark system, and the plain `:root[data-theme="dark"]`
+   rule below repeats the same values so "dark" applies on a light system
+   too, since prefers-color-scheme can't be forced any other way. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #0d0e12;
     --surface: #16171d;
     --surface-2: #1d1f27;
@@ -61,6 +67,31 @@
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
     --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.3);
   }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0d0e12;
+  --surface: #16171d;
+  --surface-2: #1d1f27;
+  --surface-3: #262932;
+  --border: #2b2d36;
+  --border-strong: #3c3f4a;
+  --text: #f2f3f5;
+  --text-muted: #9aa0ab;
+  --text-faint: #757c88;
+  --accent: #f8b34d;
+  --accent-ink: #f8b34d;
+  --accent-contrast: #221703;
+  --accent-soft: #f5a22521;
+  --accent-soft-strong: #f5a2253d;
+  --danger: #f87171;
+  --danger-soft: #f871711f;
+  --success: #4ade80;
+  --info: #5b8def;
+  --info-contrast: #0a1530;
+  --ring: #f8b34d8c;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.55), 0 2px 8px rgb(0 0 0 / 0.3);
 }
 
 * {

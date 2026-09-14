@@ -1,74 +1,34 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
 import { buildExportData, downloadJSON } from '../utils/export'
 import UsageModal from './UsageModal'
 import ExportWarningModal from './ExportWarningModal'
+import CreatorModeModal from './CreatorModeModal'
+import EditableField from './EditableField'
+import { ThemeIcon } from './ThemeToggle'
+import { THEME_CYCLE, THEME_LABEL_KEYS } from '../utils/theme'
 
-function EditableField({ value, placeholder, title, onCommit }) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(value ?? '')
-  const inputRef = useRef(null)
-
-  useEffect(() => {
-    if (editing) inputRef.current?.select()
-  }, [editing])
-
-  function commit() {
-    onCommit(draft.trim())
-    setEditing(false)
-  }
-
-  if (editing) {
-    return (
-      <input
-        ref={inputRef}
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') commit()
-          if (e.key === 'Escape') {
-            setDraft(value ?? '')
-            setEditing(false)
-          }
-        }}
-        className="field field-sm text-right"
-        style={{ width: 128, background: 'var(--surface)', borderColor: 'var(--accent)' }}
-        aria-label={title}
-      />
-    )
-  }
-
+function LockIcon({ locked }) {
   return (
-    <button
-      onClick={() => {
-        setDraft(value ?? '')
-        setEditing(true)
-      }}
-      className="group flex items-center gap-1 text-[13px] font-semibold rounded px-1 -mx-1"
-      style={{ color: value ? 'var(--text)' : 'var(--accent-ink)' }}
-      title={title}
-    >
-      <span className="truncate" style={{ maxWidth: 140 }}>
-        {value || placeholder}
-      </span>
-      <span
-        className="text-[10px] opacity-0 group-hover:opacity-100 transition"
-        style={{ color: 'var(--text-muted)' }}
-        aria-hidden="true"
-      >
-        ✎
-      </span>
-    </button>
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <rect x="3" y="7.2" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      {locked ? (
+        <path d="M5.2 7.2V5a2.8 2.8 0 0 1 5.6 0v2.2" stroke="currentColor" strokeWidth="1.3" />
+      ) : (
+        <path d="M5.2 7.2V5a2.8 2.8 0 0 1 5.3-1.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      )}
+    </svg>
   )
 }
 
 export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRight }) {
-  const { state, logout, clearJustLoggedIn, updateParticipantId, setLang, t } = useApp()
-  const { participantId, treatment, images, shapesByImage, classes, lang } = state
+  const { state, logout, clearJustLoggedIn, updateParticipantId, setLang, setTheme, enterCreatorMode, exitCreatorMode, t } =
+    useApp()
+  const { participantId, treatment, images, shapesByImage, classes, lang, theme, creatorMode } = state
   const [showUsage, setShowUsage] = useState(false)
   const [showExportWarning, setShowExportWarning] = useState(false)
+  const [showCreatorModal, setShowCreatorModal] = useState(false)
 
   // Header is remounted fresh each time Workspace swaps in for LoginScreen,
   // so this only fires once per actual login — not on every reload of a
@@ -156,6 +116,18 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
         {studyName}
       </p>
 
+      {/* Always visible while unlocked, not just on the toggle button — a
+          creator shouldn't have to remember which mode they left it in
+          before deleting or renaming a class. */}
+      {creatorMode && (
+        <span
+          className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0"
+          style={{ background: 'var(--danger-soft)', color: 'var(--danger)' }}
+        >
+          {t('header.creatorModeBadge')}
+        </span>
+      )}
+
       <button
         onClick={() => setShowUsage(true)}
         className="toolbar-btn-info flex-shrink-0"
@@ -236,6 +208,25 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
           )}
         </div>
         <button
+          onClick={() => setTheme(THEME_CYCLE[theme])}
+          className="toolbar-btn"
+          title={t('header.themeTitle', { mode: t(THEME_LABEL_KEYS[theme]) })}
+          aria-label={t('header.themeTitle', { mode: t(THEME_LABEL_KEYS[theme]) })}
+        >
+          <ThemeIcon theme={theme} />
+        </button>
+        <button
+          // Locking never needs the password, only unlocking does — a
+          // participant should always be able to back out with one click.
+          onClick={() => (creatorMode ? exitCreatorMode() : setShowCreatorModal(true))}
+          className="toolbar-btn"
+          data-active={creatorMode}
+          title={t(creatorMode ? 'header.creatorModeExitTitle' : 'header.creatorModeEnterTitle')}
+          aria-label={t(creatorMode ? 'header.creatorModeExitTitle' : 'header.creatorModeEnterTitle')}
+        >
+          <LockIcon locked={!creatorMode} />
+        </button>
+        <button
           onClick={() => setLang(lang === 'en' ? 'de' : 'en')}
           className="toolbar-btn"
           title={t('header.langTitle')}
@@ -254,6 +245,15 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
           total={images.length}
           onCancel={() => setShowExportWarning(false)}
           onConfirm={runExport}
+        />
+      )}
+      {showCreatorModal && (
+        <CreatorModeModal
+          onCancel={() => setShowCreatorModal(false)}
+          onSuccess={() => {
+            enterCreatorMode()
+            setShowCreatorModal(false)
+          }}
         />
       )}
     </header>

@@ -37,6 +37,19 @@ function round(n) {
   return Math.round(n * 100) / 100
 }
 
+// Guarantees a ".json" extension regardless of what the user typed (or left
+// blank), so an exported class list can never end up saved under some other
+// file type. Replaces a trailing extension rather than appending blindly, so
+// re-submitting an unchanged "classes.json" round-trips to itself.
+export function toJsonFilename(name, fallback = 'classes') {
+  const base =
+    String(name)
+      .trim()
+      .replace(/\.[A-Za-z0-9]{1,10}$/, '')
+      .replace(/\.+$/, '') || fallback
+  return `${base}.json`
+}
+
 export function downloadJSON(filename, data) {
   const blob = new Blob([JSON.stringify(data, null, 2)], {
     type: 'application/json',
