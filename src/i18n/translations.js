@@ -47,7 +47,7 @@ export const translations = {
     'deleteClassModal.confirm': 'Delete anyway',
 
     'classPicker.heading': 'Classes',
-    'classPicker.load': 'Load',
+    'classPicker.load': '+ Load config',
     'classPicker.loadTitle': 'Load a custom class list from a JSON file',
     'classPicker.reset': 'Clear all',
     'classPicker.resetTitle': 'Remove every class from the list',
@@ -194,7 +194,7 @@ export const translations = {
     'deleteClassModal.confirm': 'Trotzdem löschen',
 
     'classPicker.heading': 'Klassen',
-    'classPicker.load': 'Laden',
+    'classPicker.load': '+ Konfiguration laden',
     'classPicker.loadTitle': 'Eigene Klassenliste aus einer JSON-Datei laden',
     'classPicker.reset': 'Alle entfernen',
     'classPicker.resetTitle': 'Alle Klassen aus der Liste entfernen',

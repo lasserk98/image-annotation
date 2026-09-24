@@ -89,10 +89,34 @@ export default function ClassPicker() {
 
   return (
     <>
+      {/* Load sits in the header next to the heading, same as the "+ Add"
+          button in ImageGallery's panel-header — and it's available in both
+          modes, since a participant in the default Annotation Mode still
+          needs to be able to pick up a config a coordinator hands them, even
+          though creating, renaming, deleting, resetting or exporting the
+          list stays gated to Creator Mode below. */}
       <div className="panel-header">
         <span className="panel-title">{t('classPicker.heading')}</span>
         <span className="count-badge">{classes.length}</span>
         <span className="flex-1" />
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="link-btn"
+          title={t('classPicker.loadTitle')}
+        >
+          {t('classPicker.load')}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".json,application/json"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) handleFile(file)
+            e.target.value = ''
+          }}
+        />
       </div>
 
       {/* Everything here edits the class list itself — gated to Creator
@@ -100,7 +124,7 @@ export default function ClassPicker() {
           pick from whatever list a coordinator already set up. */}
       {creatorMode && (
         <>
-          {/* Its own row, and one that's allowed to wrap: three action
+          {/* Its own row, and one that's allowed to wrap: both action
               buttons plus the heading above would overflow the fixed-width
               side panel on one non-wrapping line. */}
           <div
@@ -117,13 +141,6 @@ export default function ClassPicker() {
               </button>
             )}
             <button
-              onClick={() => inputRef.current?.click()}
-              className="link-btn"
-              title={t('classPicker.loadTitle')}
-            >
-              {t('classPicker.load')}
-            </button>
-            <button
               onClick={() => setShowExportModal(true)}
               disabled={classes.length === 0}
               className="link-btn"
@@ -131,17 +148,6 @@ export default function ClassPicker() {
             >
               {t('classPicker.export')}
             </button>
-            <input
-              ref={inputRef}
-              type="file"
-              accept=".json,application/json"
-              hidden
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) handleFile(file)
-                e.target.value = ''
-              }}
-            />
           </div>
 
           <form
