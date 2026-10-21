@@ -29,12 +29,12 @@ describe('UsageModal', () => {
   })
 
   describe('creator variant', () => {
-    it('shows only the how-to-annotate section', async () => {
+    it('shows how to annotate and the shortcuts, but no study instructions', async () => {
       const screen = await renderModal('creator')
 
       expect(screen.getByText('How to annotate')).toBeInTheDocument()
+      expect(screen.getByText('Keyboard shortcuts')).toBeInTheDocument()
       expect(screen.queryByText('Study instructions')).not.toBeInTheDocument()
-      expect(screen.queryByText('Keyboard shortcuts')).not.toBeInTheDocument()
     })
 
     it('does not tell the creator to unlock Creator Mode', async () => {

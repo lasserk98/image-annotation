@@ -33,7 +33,7 @@ const STEP_KEYS = [
 
 export default function UsageModal({ onClose }) {
   const { t, state } = useApp()
-  // The creator variant has no study, so it shows only the how-to steps.
+  // The creator variant has no study, so it skips the study instructions.
   const instructions = isCreatorVariant
     ? null
     : typeof study.instructions === 'object'
@@ -103,30 +103,28 @@ export default function UsageModal({ onClose }) {
           </ol>
         </div>
 
-        {!isCreatorVariant && (
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>
-              {t('usage.shortcutsHeading')}
-            </h3>
-            <div className="space-y-1">
-              {SHORTCUT_KEYS.map(({ key, labelKey }) => (
-                <div key={key} className="flex items-center gap-3 text-sm py-0.5">
-                  <code
-                    className="text-[11px] px-1.5 py-0.5 rounded flex-shrink-0 min-w-[8.5rem] text-center"
-                    style={{
-                      background: 'var(--surface-2)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text)',
-                    }}
-                  >
-                    {key}
-                  </code>
-                  <span style={{ color: 'var(--text-muted)' }}>{t(labelKey)}</span>
-                </div>
-              ))}
-            </div>
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>
+            {t('usage.shortcutsHeading')}
+          </h3>
+          <div className="space-y-1">
+            {SHORTCUT_KEYS.map(({ key, labelKey }) => (
+              <div key={key} className="flex items-center gap-3 text-sm py-0.5">
+                <code
+                  className="text-[11px] px-1.5 py-0.5 rounded flex-shrink-0 min-w-[8.5rem] text-center"
+                  style={{
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text)',
+                  }}
+                >
+                  {key}
+                </code>
+                <span style={{ color: 'var(--text-muted)' }}>{t(labelKey)}</span>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
 
         <button
           onClick={onClose}
