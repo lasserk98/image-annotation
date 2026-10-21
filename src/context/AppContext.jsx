@@ -14,6 +14,7 @@ import {
 } from '../utils/storage'
 import { sortClassesByName } from '../utils/classes'
 import { translate } from '../i18n/translations'
+import { isCreatorVariant } from '../variant'
 
 const AppContext = createContext(null)
 
@@ -36,7 +37,9 @@ function applyTheme(theme) {
   }
 }
 
-const initialSession = loadSession()
+// The Creator variant has no participant, so a session saved by an earlier
+// visit (or the study build on the same origin) is ignored rather than shown.
+const initialSession = isCreatorVariant ? null : loadSession()
 const storedClasses = loadClasses()
 // Every class list is sorted on the way in — whether it came from the bundled
 // config or a JSON file a participant loaded — so the menu, the instance
@@ -57,10 +60,10 @@ const initialState = {
   treatment: initialSession?.treatment ?? null,
   lang: storedLang === 'de' || storedLang === 'en' ? storedLang : browserLang,
   theme: initialTheme,
-  // Never persisted and never read from storage at init — Creator Mode
-  // always starts locked on a fresh page load, by design (see study.json's
-  // creatorPassword).
-  creatorMode: false,
+  // Never persisted and never read from storage at init. The Creator variant
+  // is always unlocked; the study variant always starts locked on a fresh
+  // page load, by design (see study.json's creatorPassword).
+  creatorMode: isCreatorVariant,
   classes: initialClasses,
   activeClassId: initialClasses[0]?.id ?? null,
   images: [], // { id, name, url, width, height }

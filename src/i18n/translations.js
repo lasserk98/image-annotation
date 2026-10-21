@@ -70,6 +70,14 @@ export const translations = {
     'exportClassesModal.cancel': 'Cancel',
     'exportClassesModal.confirm': 'Export',
 
+    'exportAnnotationsModal.title': 'Export annotations',
+    'exportAnnotationsModal.filenameLabel': 'File name',
+    'exportAnnotationsModal.hint': 'Always saved as .json — any other extension you type is replaced. Images are never included.',
+    'exportAnnotationsModal.cancel': 'Cancel',
+    'exportAnnotationsModal.confirm': 'Export',
+
+    'header.creatorAppName': 'Segmentation Annotator',
+
     'imageGallery.heading': 'Images',
     'imageGallery.add': '+ Add',
     'imageGallery.addFolder': '+ Add folder',
@@ -131,6 +139,8 @@ export const translations = {
     'usage.step6': 'Review what you marked in the instances panel on the right — hover a row to highlight it on the image.',
     'usage.step7': 'Switch images with the toolbar arrows or the ← → keys.',
     'usage.step8': 'When done, click "Export" to download a JSON file with every image\'s annotations.',
+    'usage.creator.step1': 'Set up your classes first: load a class list from a JSON file, or create, rename and delete classes one at a time in the left panel. You can export the current list at any time. There are no classes to start with.',
+    'usage.creator.step8': 'When done, click "Export", choose a file name, and download a JSON file with every image\'s annotations (shapes only, never the images).',
     'usage.shortcutsHeading': 'Keyboard shortcuts',
     'usage.shortcut.newShape': 'Start a new shape',
     'usage.shortcut.classNumber': 'Select class N / reassign selected shape',
@@ -217,6 +227,14 @@ export const translations = {
     'exportClassesModal.cancel': 'Abbrechen',
     'exportClassesModal.confirm': 'Exportieren',
 
+    'exportAnnotationsModal.title': 'Annotationen exportieren',
+    'exportAnnotationsModal.filenameLabel': 'Dateiname',
+    'exportAnnotationsModal.hint': 'Wird immer als .json gespeichert — jede andere Endung wird ersetzt. Bilder werden nie mit exportiert.',
+    'exportAnnotationsModal.cancel': 'Abbrechen',
+    'exportAnnotationsModal.confirm': 'Exportieren',
+
+    'header.creatorAppName': 'Segmentierungs-Annotator',
+
     'imageGallery.heading': 'Bilder',
     'imageGallery.add': '+ Hinzufügen',
     'imageGallery.addFolder': '+ Ordner hinzufügen',
@@ -278,6 +296,8 @@ export const translations = {
     'usage.step6': 'Prüfe deine Markierungen rechts im Bereich „Instanzen“ – fahre über eine Zeile, um sie im Bild hervorzuheben.',
     'usage.step7': 'Wechsle Bilder mit den Pfeilen in der Werkzeugleiste oder den Tasten ← →.',
     'usage.step8': 'Klicke am Ende auf „Exportieren“, um eine JSON-Datei mit allen Annotationen herunterzuladen.',
+    'usage.creator.step1': 'Lege zuerst deine Klassen an: Lade eine Klassenliste aus einer JSON-Datei oder lege Klassen im linken Bereich einzeln an, benenne sie um oder lösche sie. Die aktuelle Liste kannst du jederzeit exportieren. Zu Beginn sind keine Klassen vorhanden.',
+    'usage.creator.step8': 'Klicke am Ende auf „Exportieren“, wähle einen Dateinamen und lade eine JSON-Datei mit allen Annotationen herunter (nur die Formen, nie die Bilder).',
     'usage.shortcutsHeading': 'Tastenkombinationen',
     'usage.shortcut.newShape': 'Neue Form starten',
     'usage.shortcut.classNumber': 'Klasse N wählen / ausgewählter Form zuweisen',

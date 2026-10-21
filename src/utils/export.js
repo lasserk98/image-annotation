@@ -4,9 +4,10 @@ import { polygonArea } from './geometry'
 // are recorded in original-image pixel space so they can be compared
 // directly against ground-truth masks regardless of how the browser
 // happened to render/zoom the image during annotation.
+// The Creator variant has no participant, so `participantId` is null there.
 // schemaVersion 2 renamed the top-level `studentId` field to `participantId`;
 // nothing else about the payload changed.
-export function buildExportData({ participantId, treatment, images, shapesByImage, classes }) {
+export function buildExportData({ participantId = null, treatment, images, shapesByImage, classes }) {
   const classById = Object.fromEntries(classes.map((c) => [c.id, c]))
 
   return {

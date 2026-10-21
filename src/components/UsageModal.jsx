@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
+import { isCreatorVariant } from '../variant'
 
 const SHORTCUT_KEYS = [
   { key: 'N', labelKey: 'usage.shortcut.newShape' },
@@ -17,21 +18,27 @@ const SHORTCUT_KEYS = [
   { key: 'Double-click edge', labelKey: 'usage.shortcut.dblClickEdge' },
 ]
 
+// Creators set up classes freely and choose their own export file name, so
+// steps 1 and 8 read differently for them than for participants.
 const STEP_KEYS = [
-  'usage.step1',
+  isCreatorVariant ? 'usage.creator.step1' : 'usage.step1',
   'usage.step2',
   'usage.step3',
   'usage.step4',
   'usage.step5',
   'usage.step6',
   'usage.step7',
-  'usage.step8',
+  isCreatorVariant ? 'usage.creator.step8' : 'usage.step8',
 ]
 
 export default function UsageModal({ onClose }) {
   const { t, state } = useApp()
-  const instructions =
-    typeof study.instructions === 'object' ? study.instructions[state.lang] : study.instructions
+  // The creator variant has no study, so it shows only the how-to steps.
+  const instructions = isCreatorVariant
+    ? null
+    : typeof study.instructions === 'object'
+      ? study.instructions[state.lang]
+      : study.instructions
 
   // Empty deps intentional: this component is freshly mounted each time the
   // modal opens (conditionally rendered), so the first-render closure over
@@ -96,28 +103,30 @@ export default function UsageModal({ onClose }) {
           </ol>
         </div>
 
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>
-            {t('usage.shortcutsHeading')}
-          </h3>
-          <div className="space-y-1">
-            {SHORTCUT_KEYS.map(({ key, labelKey }) => (
-              <div key={key} className="flex items-center gap-3 text-sm py-0.5">
-                <code
-                  className="text-[11px] px-1.5 py-0.5 rounded flex-shrink-0 min-w-[8.5rem] text-center"
-                  style={{
-                    background: 'var(--surface-2)',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text)',
-                  }}
-                >
-                  {key}
-                </code>
-                <span style={{ color: 'var(--text-muted)' }}>{t(labelKey)}</span>
-              </div>
-            ))}
+        {!isCreatorVariant && (
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>
+              {t('usage.shortcutsHeading')}
+            </h3>
+            <div className="space-y-1">
+              {SHORTCUT_KEYS.map(({ key, labelKey }) => (
+                <div key={key} className="flex items-center gap-3 text-sm py-0.5">
+                  <code
+                    className="text-[11px] px-1.5 py-0.5 rounded flex-shrink-0 min-w-[8.5rem] text-center"
+                    style={{
+                      background: 'var(--surface-2)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text)',
+                    }}
+                  >
+                    {key}
+                  </code>
+                  <span style={{ color: 'var(--text-muted)' }}>{t(labelKey)}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <button
           onClick={onClose}

@@ -5,6 +5,8 @@ import { buildExportData, downloadJSON } from '../utils/export'
 import UsageModal from './UsageModal'
 import ExportWarningModal from './ExportWarningModal'
 import CreatorModeModal from './CreatorModeModal'
+import ExportFilenameModal from './ExportFilenameModal'
+import { isCreatorVariant } from '../variant'
 import EditableField from './EditableField'
 import { ThemeIcon } from './ThemeToggle'
 import { THEME_CYCLE, THEME_LABEL_KEYS } from '../utils/theme'
@@ -29,6 +31,7 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
   const [showUsage, setShowUsage] = useState(false)
   const [showExportWarning, setShowExportWarning] = useState(false)
   const [showCreatorModal, setShowCreatorModal] = useState(false)
+  const [showExportNameModal, setShowExportNameModal] = useState(false)
 
   // Header is remounted fresh each time Workspace swaps in for LoginScreen,
   // so this only fires once per actual login — not on every reload of a
@@ -43,15 +46,29 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
 
   const unannotated = images.filter((img) => (shapesByImage[img.id]?.length ?? 0) === 0)
   const annotatedCount = images.length - unannotated.length
-  const studyName = typeof study.studyName === 'object' ? study.studyName[lang] : study.studyName
+  const studyName = isCreatorVariant
+    ? t('header.creatorAppName')
+    : typeof study.studyName === 'object'
+      ? study.studyName[lang]
+      : study.studyName
   const progress = images.length > 0 ? annotatedCount / images.length : 0
   const incomplete = images.length > 0 && unannotated.length > 0
 
-  function runExport() {
+  function downloadAnnotations(filename) {
     const data = buildExportData({ participantId, treatment, images, shapesByImage, classes })
-    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
-    downloadJSON(`annotations_${participantId}_${stamp}.json`, data)
+    downloadJSON(filename, data)
+  }
+
+  // Participants get a generated file name that carries their ID; creators
+  // have no participant, so they choose the name themselves.
+  function runExport() {
     setShowExportWarning(false)
+    if (isCreatorVariant) {
+      setShowExportNameModal(true)
+      return
+    }
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    downloadAnnotations(`annotations_${participantId}_${stamp}.json`)
   }
 
   // Leaving a frame unannotated is usually an oversight rather than a
@@ -186,27 +203,29 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
         className="flex items-center gap-2 pl-2 ml-1 flex-shrink-0"
         style={{ borderLeft: '1px solid var(--border)' }}
       >
-        <div className="text-right leading-tight">
-          <p
-            className="text-[10px] uppercase tracking-wide"
-            style={{ color: 'var(--text-muted)', letterSpacing: '0.05em' }}
-          >
-            {t('header.participantIdLabel')}
-          </p>
-          <div className="flex justify-end">
-            <EditableField
-              value={participantId}
-              placeholder={t('login.idPlaceholder')}
-              title={t('header.editIdTitle')}
-              onCommit={(v) => v && updateParticipantId(v)}
-            />
-          </div>
-          {treatment && (
-            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-              {t('header.treatmentLabel', { t: treatment })}
+        {!isCreatorVariant && (
+          <div className="text-right leading-tight">
+            <p
+              className="text-[10px] uppercase tracking-wide"
+              style={{ color: 'var(--text-muted)', letterSpacing: '0.05em' }}
+            >
+              {t('header.participantIdLabel')}
             </p>
-          )}
-        </div>
+            <div className="flex justify-end">
+              <EditableField
+                value={participantId}
+                placeholder={t('login.idPlaceholder')}
+                title={t('header.editIdTitle')}
+                onCommit={(v) => v && updateParticipantId(v)}
+              />
+            </div>
+            {treatment && (
+              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                {t('header.treatmentLabel', { t: treatment })}
+              </p>
+            )}
+          </div>
+        )}
         <button
           onClick={() => setTheme(THEME_CYCLE[theme])}
           className="toolbar-btn"
@@ -215,17 +234,19 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
         >
           <ThemeIcon theme={theme} />
         </button>
-        <button
-          // Locking never needs the password, only unlocking does — a
-          // participant should always be able to back out with one click.
-          onClick={() => (creatorMode ? exitCreatorMode() : setShowCreatorModal(true))}
-          className="toolbar-btn"
-          data-active={creatorMode}
-          title={t(creatorMode ? 'header.creatorModeExitTitle' : 'header.creatorModeEnterTitle')}
-          aria-label={t(creatorMode ? 'header.creatorModeExitTitle' : 'header.creatorModeEnterTitle')}
-        >
-          <LockIcon locked={!creatorMode} />
-        </button>
+        {!isCreatorVariant && (
+          <button
+            // Locking never needs the password, only unlocking does — a
+            // participant should always be able to back out with one click.
+            onClick={() => (creatorMode ? exitCreatorMode() : setShowCreatorModal(true))}
+            className="toolbar-btn"
+            data-active={creatorMode}
+            title={t(creatorMode ? 'header.creatorModeExitTitle' : 'header.creatorModeEnterTitle')}
+            aria-label={t(creatorMode ? 'header.creatorModeExitTitle' : 'header.creatorModeEnterTitle')}
+          >
+            <LockIcon locked={!creatorMode} />
+          </button>
+        )}
         <button
           onClick={() => setLang(lang === 'en' ? 'de' : 'en')}
           className="toolbar-btn"
@@ -233,9 +254,11 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
         >
           {lang === 'en' ? 'DE' : 'EN'}
         </button>
-        <button onClick={logout} className="toolbar-btn" title={t('header.logoutTitle')}>
-          {t('header.logout')}
-        </button>
+        {!isCreatorVariant && (
+          <button onClick={logout} className="toolbar-btn" title={t('header.logoutTitle')}>
+            {t('header.logout')}
+          </button>
+        )}
       </div>
 
       {showUsage && <UsageModal onClose={() => setShowUsage(false)} />}
@@ -245,6 +268,18 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
           total={images.length}
           onCancel={() => setShowExportWarning(false)}
           onConfirm={runExport}
+        />
+      )}
+      {showExportNameModal && (
+        <ExportFilenameModal
+          defaultName="annotations.json"
+          fallbackName="annotations"
+          i18nPrefix="exportAnnotationsModal"
+          onCancel={() => setShowExportNameModal(false)}
+          onConfirm={(filename) => {
+            downloadAnnotations(filename)
+            setShowExportNameModal(false)
+          }}
         />
       )}
       {showCreatorModal && (

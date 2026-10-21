@@ -25,3 +25,6 @@ dist-ssr
 
 # Custom class list, loaded via the in-app "Load" button and persisted to
 # the browser's localStorage — not part of the repo.
+
+# Claude Code local files (PRDs, plans, worktrees)
+.claude/

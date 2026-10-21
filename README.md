@@ -33,6 +33,20 @@ npm run preview # serve the production build locally to sanity-check it
 (GitHub Pages, Netlify, a plain web server, or opened as a zip and run from
 `file://`) with no backend required.
 
+## Two variants
+
+One codebase builds two products, selected at build time with
+`VITE_APP_VARIANT`:
+
+| Variant | Build | What it is |
+|---|---|---|
+| `creator` (default) | `npm run build` | The open tool: no participant ID, class editing always available, and an Export button that asks for a file name. Exports contain polygon shapes only — never the images. This is what the current deployed site serves. |
+| `study` | `VITE_APP_VARIANT=study npm run build` | The participant flow described below: participant ID screen, classes locked behind the Creator password. |
+
+For development, `npm run dev` starts the creator variant and
+`VITE_APP_VARIANT=study npm run dev` starts the study variant. The
+participant-flow sections below describe the `study` variant.
+
 ## How participants use it
 
 Classes must already be set up (see [Creator Mode](#creator-mode-vs-annotation-mode)

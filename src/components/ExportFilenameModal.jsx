@@ -2,9 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { toJsonFilename } from '../utils/export'
 
-export default function ExportClassesModal({ onCancel, onConfirm }) {
+// Asks for a file name before a JSON download. Shared by the class-list export
+// and the annotation export: the caller supplies the default name, the base
+// name used when the field is left blank, and the i18n key prefix for the copy.
+export default function ExportFilenameModal({
+  onCancel,
+  onConfirm,
+  defaultName = 'classes.json',
+  fallbackName = 'classes',
+  i18nPrefix = 'exportClassesModal',
+}) {
   const { t } = useApp()
-  const [name, setName] = useState('classes.json')
+  const [name, setName] = useState(defaultName)
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -22,14 +31,14 @@ export default function ExportClassesModal({ onCancel, onConfirm }) {
 
   function handleSubmit(e) {
     e.preventDefault()
-    onConfirm(toJsonFilename(name))
+    onConfirm(toJsonFilename(name, fallbackName))
   }
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="export-classes-title"
+      aria-labelledby="export-filename-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.4)' }}
       onClick={onCancel}
@@ -45,12 +54,12 @@ export default function ExportClassesModal({ onCancel, onConfirm }) {
           boxShadow: 'var(--shadow-lg)',
         }}
       >
-        <h2 id="export-classes-title" className="text-base font-semibold mb-3">
-          {t('exportClassesModal.title')}
+        <h2 id="export-filename-title" className="text-base font-semibold mb-3">
+          {t(`${i18nPrefix}.title`)}
         </h2>
 
         <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>
-          {t('exportClassesModal.filenameLabel')}
+          {t(`${i18nPrefix}.filenameLabel`)}
         </label>
         <input
           ref={inputRef}
@@ -61,15 +70,15 @@ export default function ExportClassesModal({ onCancel, onConfirm }) {
           autoFocus
         />
         <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-          {t('exportClassesModal.hint')}
+          {t(`${i18nPrefix}.hint`)}
         </p>
 
         <div className="flex gap-2 justify-end">
           <button type="button" onClick={onCancel} className="toolbar-btn">
-            {t('exportClassesModal.cancel')}
+            {t(`${i18nPrefix}.cancel`)}
           </button>
           <button type="submit" className="toolbar-btn-primary">
-            {t('exportClassesModal.confirm')}
+            {t(`${i18nPrefix}.confirm`)}
           </button>
         </div>
       </form>

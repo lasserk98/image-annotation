@@ -10,7 +10,7 @@ import {
 import { downloadJSON } from '../utils/export'
 import EditableField from './EditableField'
 import DeleteClassModal from './DeleteClassModal'
-import ExportClassesModal from './ExportClassesModal'
+import ExportFilenameModal from './ExportFilenameModal'
 
 // Above this many classes the list stops being scannable by eye, so a filter
 // box appears. The sample surgical class list has 34 entries.
@@ -303,7 +303,7 @@ export default function ClassPicker() {
       )}
 
       {showExportModal && (
-        <ExportClassesModal
+        <ExportFilenameModal
           onCancel={() => setShowExportModal(false)}
           onConfirm={(filename) => {
             downloadJSON(filename, classes)
