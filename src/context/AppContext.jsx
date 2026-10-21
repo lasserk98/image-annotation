@@ -14,12 +14,27 @@ import {
   saveTheme,
 } from '../utils/storage'
 import { parseClasses, sortClassesByName } from '../utils/classes'
+import { emptySurvey, isSurveyComplete, sanitizeSurvey } from '../utils/survey'
+import { PRE_SURVEY } from '../survey/preSurvey'
 import { translate } from '../i18n/translations'
 import { isCreatorVariant } from '../variant'
 
 const AppContext = createContext(null)
 
 const MAX_HISTORY = 50
+const SURVEY_VERSION = PRE_SURVEY.version
+
+// The saved session is the participant ID, treatment and survey progress, so a
+// reload resumes where the participant left off. The creator has no session.
+function persistSession({ participantId, treatment, survey }) {
+  if (isCreatorVariant) return
+  saveSession({ participantId, treatment, survey })
+}
+
+function forgetSession() {
+  if (isCreatorVariant) return
+  clearSession()
+}
 
 function emptyHistory() {
   return { past: [], future: [] }
@@ -66,6 +81,9 @@ const initialState = {
   // stored by an older build doesn't silently log the participant out.
   participantId: initialSession?.participantId ?? initialSession?.studentId ?? null,
   treatment: initialSession?.treatment ?? null,
+  // Consent and survey answers. A session saved before surveys existed, or
+  // for another survey version, simply starts the survey from the beginning.
+  survey: sanitizeSurvey(initialSession?.survey, PRE_SURVEY),
   lang: storedLang === 'de' || storedLang === 'en' ? storedLang : defaultLang,
   theme: initialTheme,
   // Never persisted. The Creator variant is always unlocked; the study variant
@@ -90,20 +108,61 @@ const initialState = {
 function reducer(state, action) {
   switch (action.type) {
     case 'LOGIN': {
-      const session = { participantId: action.participantId, treatment: action.treatment ?? null }
-      saveSession(session)
+      const session = {
+        participantId: action.participantId,
+        treatment: action.treatment ?? null,
+        survey: emptySurvey(SURVEY_VERSION),
+      }
+      persistSession(session)
       return { ...state, ...session, justLoggedIn: true }
     }
     case 'CLEAR_JUST_LOGGED_IN':
       return { ...state, justLoggedIn: false }
     case 'LOGOUT': {
-      clearSession()
-      return { ...state, participantId: null, treatment: null }
+      forgetSession()
+      // Everything the participant loaded or drew goes with them, so whoever
+      // uses this browser next starts clean. Language, theme and the class
+      // list are not theirs and stay.
+      for (const img of state.images) URL.revokeObjectURL(img.url)
+      return {
+        ...state,
+        participantId: null,
+        treatment: null,
+        survey: emptySurvey(SURVEY_VERSION),
+        images: [],
+        currentImageId: null,
+        shapesByImage: {},
+        historyByImage: {},
+        selection: { shapeId: null, vertexIndex: null },
+        hoveredShapeId: null,
+        justLoggedIn: false,
+      }
     }
     case 'UPDATE_PARTICIPANT_ID': {
       const participantId = action.participantId
-      saveSession({ participantId, treatment: state.treatment })
+      persistSession({ participantId, treatment: state.treatment, survey: state.survey })
       return { ...state, participantId }
+    }
+    case 'ACCEPT_CONSENT': {
+      // Keep the first time consent was given.
+      if (state.survey.consentAcceptedAt) return state
+      const survey = { ...state.survey, consentAcceptedAt: action.at }
+      persistSession({ ...state, survey })
+      return { ...state, survey }
+    }
+    case 'SET_SURVEY_ANSWER': {
+      // Submitted answers are final.
+      if (state.survey.completedAt) return state
+      const answers = { ...state.survey.answers, [action.itemId]: action.value }
+      const survey = { ...state.survey, answers }
+      persistSession({ ...state, survey })
+      return { ...state, survey }
+    }
+    case 'COMPLETE_SURVEY': {
+      if (state.survey.completedAt || !isSurveyComplete(PRE_SURVEY, state.survey.answers)) return state
+      const survey = { ...state.survey, completedAt: action.at }
+      persistSession({ ...state, survey })
+      return { ...state, survey }
     }
     case 'SET_LANG': {
       saveLang(action.lang)
@@ -268,6 +327,18 @@ export function AppProvider({ children }) {
     [],
   )
   const logout = useCallback(() => dispatch({ type: 'LOGOUT' }), [])
+  const acceptConsent = useCallback(
+    () => dispatch({ type: 'ACCEPT_CONSENT', at: new Date().toISOString() }),
+    [],
+  )
+  const setSurveyAnswer = useCallback(
+    (itemId, value) => dispatch({ type: 'SET_SURVEY_ANSWER', itemId, value }),
+    [],
+  )
+  const completeSurvey = useCallback(
+    () => dispatch({ type: 'COMPLETE_SURVEY', at: new Date().toISOString() }),
+    [],
+  )
   const clearJustLoggedIn = useCallback(() => dispatch({ type: 'CLEAR_JUST_LOGGED_IN' }), [])
   const addImages = useCallback((images) => dispatch({ type: 'ADD_IMAGES', images }), [])
   const removeImage = useCallback((imageId) => dispatch({ type: 'REMOVE_IMAGE', imageId }), [])
@@ -312,6 +383,9 @@ export function AppProvider({ children }) {
       t,
       login,
       logout,
+      acceptConsent,
+      setSurveyAnswer,
+      completeSurvey,
       clearJustLoggedIn,
       addImages,
       removeImage,
@@ -336,6 +410,9 @@ export function AppProvider({ children }) {
       t,
       login,
       logout,
+      acceptConsent,
+      setSurveyAnswer,
+      completeSurvey,
       clearJustLoggedIn,
       addImages,
       removeImage,

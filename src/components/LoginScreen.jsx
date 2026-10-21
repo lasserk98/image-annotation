@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
-import { ThemeIcon } from './ThemeToggle'
-import { THEME_CYCLE, THEME_LABEL_KEYS } from '../utils/theme'
+import ScreenControls from './ScreenControls'
 
 export default function LoginScreen() {
-  const { login, t, state, setLang, setTheme } = useApp()
+  const { login, t, state } = useApp()
   const [participantId, setParticipantId] = useState('')
   const [password, setPassword] = useState('')
   const [treatment, setTreatment] = useState('')
@@ -44,31 +43,7 @@ export default function LoginScreen() {
       className="h-full overflow-y-auto scroll-thin flex items-center justify-center px-4 py-10 relative"
       style={{ background: 'var(--bg)' }}
     >
-      <div className="absolute top-4 right-4 flex items-center gap-1.5">
-        <button
-          onClick={() => setTheme(THEME_CYCLE[state.theme])}
-          className="flex items-center justify-center rounded-md transition"
-          style={{
-            width: 30,
-            height: 30,
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted)',
-            background: 'var(--surface)',
-          }}
-          title={t('header.themeTitle', { mode: t(THEME_LABEL_KEYS[state.theme]) })}
-          aria-label={t('header.themeTitle', { mode: t(THEME_LABEL_KEYS[state.theme]) })}
-        >
-          <ThemeIcon theme={state.theme} />
-        </button>
-        <button
-          onClick={() => setLang(state.lang === 'en' ? 'de' : 'en')}
-          className="text-xs font-semibold px-2.5 py-1.5 rounded-md transition"
-          style={{ border: '1px solid var(--border)', color: 'var(--text-muted)', background: 'var(--surface)' }}
-          title={t('header.langTitle')}
-        >
-          {state.lang === 'en' ? 'DE' : 'EN'}
-        </button>
-      </div>
+      <ScreenControls />
       <div
         className="w-full max-w-sm rounded-2xl p-8"
         style={{

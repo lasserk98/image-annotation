@@ -5,6 +5,16 @@ export const translations = {
     'login.subtitle': 'Enter your participant ID and the study password to start annotating. Your images never leave your browser.',
     'login.password': 'Study password',
     'login.errorPassword': 'Please enter the correct study password.',
+
+    'consent.continue': 'Continue',
+
+    'survey.progress': 'Part {n} of {total}',
+    'survey.question': 'Question {n} of {total}',
+    'survey.back': 'Back',
+    'survey.next': 'Next',
+    'survey.submit': 'Submit and start',
+    'survey.incomplete': 'Please answer all required questions ({n} missing).',
+    'survey.optional': 'optional',
     'login.participantId': 'Participant ID',
     'login.idPlaceholder': 'e.g. P-1234567',
     'login.treatment': 'Treatment',
@@ -159,6 +169,16 @@ export const translations = {
     'login.subtitle': 'Gib deine Teilnehmer-ID und das Studienpasswort ein, um mit der Annotation zu beginnen. Deine Bilder verlassen niemals deinen Browser.',
     'login.password': 'Studienpasswort',
     'login.errorPassword': 'Bitte gib das richtige Studienpasswort ein.',
+
+    'consent.continue': 'Weiter',
+
+    'survey.progress': 'Teil {n} von {total}',
+    'survey.question': 'Frage {n} von {total}',
+    'survey.back': 'Zurück',
+    'survey.next': 'Weiter',
+    'survey.submit': 'Abschließen und starten',
+    'survey.incomplete': 'Bitte beantworte alle Pflichtfragen ({n} fehlen).',
+    'survey.optional': 'optional',
     'login.participantId': 'Teilnehmer-ID',
     'login.idPlaceholder': 'z. B. P-1234567',
     'login.treatment': 'Treatment',

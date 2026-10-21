@@ -56,7 +56,9 @@ can only pick from that list.
 
 1. Enter a participant ID (any non-empty value — there's no roster to validate
    against, but it's editable later via the ✎ next to Export in case of a typo)
-   and the shared study password.
+   and the shared study password. Then accept the consent notice and complete
+   the survey (see [The study survey](#the-study-survey)); the annotation
+   workspace opens once the survey is submitted.
 2. Drag & drop, or click "+ Add", to load one or more local images. Images are
    read straight into the browser (as object URLs) and are never uploaded.
 3. Pick a class in the left panel (or press `1`-`9` for the first nine).
@@ -98,6 +100,27 @@ behind the ⓘ icon in the header (translated along with the rest of the UI).
 The study password is checked in the browser, so it ships inside the public JS
 bundle and can be read by anyone using their browser's dev tools. It keeps
 casual visitors out of the study page; it is **not real access control**.
+
+### The study survey
+
+After login a study participant sees a consent notice and then a three-part
+survey (demographics and AI usage, a pre-intervention questionnaire, and ten
+knowledge questions) before the workspace opens. Progress survives a reload;
+the participant can go back until they submit, after which the answers are
+locked, and logging out clears everything.
+
+- **Wording** lives in `src/survey/preSurvey.js`, as data, always in German
+  (only buttons and messages follow the DE/EN switch). It comes from the study
+  owner and must not be changed without their confirmation.
+- **Consent text** lives in `src/survey/consentText.js` and is currently a
+  **placeholder** — replace it with the real wording before the pilot.
+- **Answers** are stored raw, keyed by stable item ids (`demo.*`, `pre.1`–`pre.10`,
+  `mc.1`–`mc.10`). This repository holds **no answer key and does no scoring**:
+  that happens later, outside this public repo. A test checks that the survey
+  definition has no field that could hold a correct answer.
+- **Not exported yet**: the answers are kept in the browser session; writing
+  them into the downloaded file is a later step, so do not hand the study out
+  to participants before that is done.
 
 ### `src/config/classes.json` — the default class list
 

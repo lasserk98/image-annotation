@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import study from '../config/study.json'
+import { seedSession } from '../test/surveyHelpers'
 
 // The login screen is the study entry gate: it only exists in the study
 // variant. The variant is read at import time, so each test loads a fresh
@@ -35,13 +36,14 @@ describe('study entry gate', () => {
     vi.unstubAllEnvs()
   })
 
-  it('lets a participant in with the study ID and the right password', async () => {
+  it('lets a participant in with the study ID and the right password, on to the consent step', async () => {
     const screen = await renderStudyApp()
 
     enter(screen, { id: 'P-1234', password: study.studyPassword })
 
-    expect(screen.getByText('P-1234')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Einwilligungserklärung' })).toBeInTheDocument()
     expect(screen.queryByLabelText('Study password')).not.toBeInTheDocument()
+    expect(JSON.parse(localStorage.getItem('seg-annotate:session')).participantId).toBe('P-1234')
   })
 
   it('rejects a wrong password and stays on the entry screen', async () => {
@@ -78,10 +80,7 @@ describe('study entry gate', () => {
   })
 
   it('restores a saved session on reload without asking for the password again', async () => {
-    localStorage.setItem(
-      'seg-annotate:session',
-      JSON.stringify({ participantId: 'P-77', treatment: null }),
-    )
+    seedSession('P-77')
 
     const screen = await renderStudyApp()
 
