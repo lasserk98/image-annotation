@@ -60,6 +60,7 @@ describe('Header export in the creator variant', () => {
     const [filename, payload] = downloadJSON.mock.calls[0]
     expect(filename).toBe('my-session.json')
     expect(payload.participantId).toBeNull()
+    expect(payload).not.toHaveProperty('survey')
     expect(payload.images[0].shapes).toHaveLength(1)
   })
 

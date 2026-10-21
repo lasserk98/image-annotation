@@ -5,9 +5,18 @@ import { polygonArea } from './geometry'
 // directly against ground-truth masks regardless of how the browser
 // happened to render/zoom the image during annotation.
 // The Creator variant has no participant, so `participantId` is null there.
-// schemaVersion 2 renamed the top-level `studentId` field to `participantId`;
-// nothing else about the payload changed.
-export function buildExportData({ participantId = null, treatment, images, shapesByImage, classes }) {
+// schemaVersion 2 renamed the top-level `studentId` field to `participantId`.
+// schemaVersion 3 added the optional top-level `survey` (study variant only);
+// everything else is as before. The survey is copied in raw: answers by item
+// id, no scoring.
+export function buildExportData({
+  participantId = null,
+  treatment,
+  images,
+  shapesByImage,
+  classes,
+  survey = null,
+}) {
   const classById = Object.fromEntries(classes.map((c) => [c.id, c]))
 
   return {
@@ -15,7 +24,8 @@ export function buildExportData({ participantId = null, treatment, images, shape
     treatment: treatment || null,
     exportedAt: new Date().toISOString(),
     tool: 'image-annotation',
-    schemaVersion: 2,
+    schemaVersion: 3,
+    ...(survey && { survey: copySurvey(survey) }),
     images: images.map((img) => {
       const shapes = shapesByImage[img.id] || []
       return {
@@ -34,6 +44,10 @@ export function buildExportData({ participantId = null, treatment, images, shape
   }
 }
 
+function copySurvey({ version, consentAcceptedAt, completedAt, answers }) {
+  return { version, consentAcceptedAt, completedAt, answers: { ...answers } }
+}
+
 function round(n) {
   return Math.round(n * 100) / 100
 }
@@ -49,6 +63,19 @@ export function toJsonFilename(name, fallback = 'classes') {
       .replace(/\.[A-Za-z0-9]{1,10}$/, '')
       .replace(/\.+$/, '') || fallback
   return `${base}.json`
+}
+
+// The file a participant uploads: named after their study ID so the analyst
+// can tell submissions apart. Anything unsafe in a file name becomes `_`, and
+// leading dots are dropped so the name can be neither hidden nor a path
+// climb. Built directly rather than through `toJsonFilename`, which would
+// read the tail of an ID like `P.12` as a file extension.
+export function participantFilename(participantId) {
+  const base = String(participantId ?? '')
+    .trim()
+    .replace(/[^A-Za-z0-9._-]/g, '_')
+    .replace(/^\.+/, '')
+  return `${base || 'study'}.json`
 }
 
 export function downloadJSON(filename, data) {

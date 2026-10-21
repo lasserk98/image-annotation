@@ -81,10 +81,12 @@ describe('UsageModal', () => {
       expect(screen.queryByText(/Creator Mode/i)).not.toBeInTheDocument()
     })
 
-    it('keeps the original participant export step', async () => {
+    it('explains the export file and the upload in the last step', async () => {
       const screen = await renderModal('study')
 
-      expect(screen.getByText(/download a JSON file with every image's annotations\.$/)).toBeInTheDocument()
+      const step = screen.getByText(/saved as one file named after your study ID/)
+      expect(step).toHaveTextContent(/Upload that file to the shared study folder/)
+      expect(step).toHaveTextContent(/upload only the latest file/)
     })
   })
 })

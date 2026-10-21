@@ -99,6 +99,9 @@ export const translations = {
     'export.incompleteBody':
       '{n} of {total} loaded images have no annotation yet. They will be exported with an empty instance list.',
     'export.andMore': '…and {n} more',
+    'exportDone.title': 'Your results are saved',
+    'exportDone.saved': 'The file was downloaded to your computer as:',
+    'exportDone.upload': 'You are not done yet: please upload this file to the shared study folder from your invitation email. If you export again, upload only the newest file.',
     'export.goBack': 'Go back',
     'export.exportAnyway': 'Export anyway',
 
@@ -141,7 +144,7 @@ export const translations = {
     'usage.step5': 'Refine a shape: drag a vertex to move it, double-click a vertex to delete it, or double-click an edge to insert a new vertex.',
     'usage.step6': 'Review what you marked in the instances panel on the right — hover a row to highlight it on the image.',
     'usage.step7': 'Switch images with the toolbar arrows or the ← → keys.',
-    'usage.step8': 'When done, click "Export" to download a JSON file with every image\'s annotations.',
+    'usage.step8': 'When done, click "Export". Your survey answers and annotations (never the images) are saved as one file named after your study ID, e.g. P-1234567.json. Upload that file to the shared study folder from your invitation email. If you export more than once, upload only the latest file.',
     'usage.creator.step1': 'Set up your classes first: load a class list from a JSON file, or create, rename and delete classes one at a time in the left panel. You can export the current list at any time. There are no classes to start with.',
     'usage.creator.step8': 'When done, click "Export", choose a file name, and download a JSON file with every image\'s annotations (shapes only, never the images).',
     'usage.shortcutsHeading': 'Keyboard shortcuts',
@@ -263,6 +266,9 @@ export const translations = {
     'export.incompleteBody':
       '{n} von {total} geladenen Bildern haben noch keine Annotation. Sie werden mit einer leeren Instanzliste exportiert.',
     'export.andMore': '… und {n} weitere',
+    'exportDone.title': 'Deine Ergebnisse sind gespeichert',
+    'exportDone.saved': 'Die Datei wurde auf deinen Computer heruntergeladen als:',
+    'exportDone.upload': 'Du bist noch nicht fertig: Bitte lade diese Datei in den gemeinsamen Studienordner aus deiner Einladungs-E-Mail hoch. Wenn du erneut exportierst, lade nur die neueste Datei hoch.',
     'export.goBack': 'Zurück',
     'export.exportAnyway': 'Trotzdem exportieren',
 
@@ -305,7 +311,7 @@ export const translations = {
     'usage.step5': 'Form verfeinern: Ziehe einen Punkt, um ihn zu verschieben; Doppelklick auf einen Punkt löscht ihn; Doppelklick auf eine Kante fügt einen neuen Punkt ein.',
     'usage.step6': 'Prüfe deine Markierungen rechts im Bereich „Instanzen“ – fahre über eine Zeile, um sie im Bild hervorzuheben.',
     'usage.step7': 'Wechsle Bilder mit den Pfeilen in der Werkzeugleiste oder den Tasten ← →.',
-    'usage.step8': 'Klicke am Ende auf „Exportieren“, um eine JSON-Datei mit allen Annotationen herunterzuladen.',
+    'usage.step8': 'Klicke am Ende auf „Exportieren“. Deine Antworten aus dem Fragebogen und deine Annotationen (nie die Bilder) werden als eine Datei gespeichert, die nach deiner Studien-ID benannt ist, z. B. P-1234567.json. Lade diese Datei in den gemeinsamen Studienordner aus deiner Einladungs-E-Mail hoch. Wenn du mehrmals exportierst, lade nur die neueste Datei hoch.',
     'usage.creator.step1': 'Lege zuerst deine Klassen an: Lade eine Klassenliste aus einer JSON-Datei oder lege Klassen im linken Bereich einzeln an, benenne sie um oder lösche sie. Die aktuelle Liste kannst du jederzeit exportieren. Zu Beginn sind keine Klassen vorhanden.',
     'usage.creator.step8': 'Klicke am Ende auf „Exportieren“, wähle einen Dateinamen und lade eine JSON-Datei mit allen Annotationen herunter (nur die Formen, nie die Bilder).',
     'usage.shortcutsHeading': 'Tastenkombinationen',

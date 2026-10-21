@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
-import { buildExportData, downloadJSON } from '../utils/export'
+import { PRE_SURVEY } from '../survey/preSurvey'
+import { sanitizeSurvey } from '../utils/survey'
+import { buildExportData, downloadJSON, participantFilename } from '../utils/export'
 import UsageModal from './UsageModal'
 import ExportWarningModal from './ExportWarningModal'
 import ExportFilenameModal from './ExportFilenameModal'
+import ExportDoneModal from './ExportDoneModal'
 import { isCreatorVariant } from '../variant'
 import EditableField from './EditableField'
 import { ThemeIcon } from './ThemeToggle'
@@ -16,6 +19,7 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
   const [showUsage, setShowUsage] = useState(false)
   const [showExportWarning, setShowExportWarning] = useState(false)
   const [showExportNameModal, setShowExportNameModal] = useState(false)
+  const [exportedFilename, setExportedFilename] = useState(null)
 
   // Header is remounted fresh each time Workspace swaps in for LoginScreen,
   // so this only fires once per actual login — not on every reload of a
@@ -38,21 +42,26 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
   const progress = images.length > 0 ? annotatedCount / images.length : 0
   const incomplete = images.length > 0 && unannotated.length > 0
 
+  // The creator file holds shapes only; a participant's file also carries
+  // their survey answers. Those go through the same check as a stored survey,
+  // so a cleared free-text box leaves no empty answer in the file.
   function downloadAnnotations(filename) {
-    const data = buildExportData({ participantId, treatment, images, shapesByImage, classes })
+    const survey = isCreatorVariant ? null : sanitizeSurvey(state.survey, PRE_SURVEY)
+    const data = buildExportData({ participantId, treatment, images, shapesByImage, classes, survey })
     downloadJSON(filename, data)
   }
 
-  // Participants get a generated file name that carries their ID; creators
-  // have no participant, so they choose the name themselves.
+  // Participants get one file named after their ID, then a reminder to upload
+  // it; creators have no participant, so they choose the name themselves.
   function runExport() {
     setShowExportWarning(false)
     if (isCreatorVariant) {
       setShowExportNameModal(true)
       return
     }
-    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
-    downloadAnnotations(`annotations_${participantId}_${stamp}.json`)
+    const filename = participantFilename(participantId)
+    downloadAnnotations(filename)
+    setExportedFilename(filename)
   }
 
   // Leaving a frame unannotated is usually an oversight rather than a
@@ -240,6 +249,9 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
           onCancel={() => setShowExportWarning(false)}
           onConfirm={runExport}
         />
+      )}
+      {exportedFilename && (
+        <ExportDoneModal filename={exportedFilename} onClose={() => setExportedFilename(null)} />
       )}
       {showExportNameModal && (
         <ExportFilenameModal

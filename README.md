@@ -76,8 +76,13 @@ can only pick from that list.
 7. Zoom with the scroll wheel over the canvas (`Shift`+scroll pans
    horizontally), drag to pan, **Fit** to reset.
 8. Switch between loaded images with the `‹ ›` toolbar buttons or arrow keys.
-9. When done, click **Export** in the header to download one JSON file with
-   every image's annotations. If any loaded image is still unannotated the
+9. When done, click **Export** in the header. In the study variant this saves
+   one file named after the participant's study ID (`P-1234567.json`) holding
+   the survey answers and every image's annotations (never the images), and a
+   dialog says to upload that file to the shared study folder. If the
+   participant exports again they upload only the newest file. In the creator
+   variant Export asks for a file name and writes the annotations only. If any
+   loaded image is still unannotated the
    header counter turns amber and Export asks for confirmation first, naming
    the frames it is about to write out empty — unannotated frames are also
    flagged in the image list, so they're easy to find and finish.
@@ -118,9 +123,10 @@ locked, and logging out clears everything.
   `mc.1`–`mc.10`). This repository holds **no answer key and does no scoring**:
   that happens later, outside this public repo. A test checks that the survey
   definition has no field that could hold a correct answer.
-- **Not exported yet**: the answers are kept in the browser session; writing
-  them into the downloaded file is a later step, so do not hand the study out
-  to participants before that is done.
+- **Export**: the answers go into the participant's `<id>.json` (see
+  [Annotation data format](#annotation-data-format)). They are kept only in
+  the browser session until then, and logging out before exporting discards
+  them, so the participant would have to answer the survey again.
 
 ### `src/config/classes.json` — the default class list
 
@@ -186,15 +192,24 @@ there (and to the `LANGUAGES` array) to support more than English/German.
 
 ## Annotation data format
 
-Each export is one JSON file:
+Each export is one JSON file. The study variant saves it as `<study ID>.json`
+(characters that are unsafe in a file name become `_`) and includes the survey;
+the creator variant has no participant ID and no `survey` key. This is the
+input format of the (separate, private) analysis step.
 
 ```json
 {
   "participantId": "P-1234567",
-  "treatment": "A",
+  "treatment": null,
   "exportedAt": "2026-09-01T12:00:00.000Z",
   "tool": "image-annotation",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
+  "survey": {
+    "version": "pre-1",
+    "consentAcceptedAt": "2026-09-01T11:50:00.000Z",
+    "completedAt": "2026-09-01T11:58:00.000Z",
+    "answers": { "demo.age": 24, "demo.gender": "divers", "pre.1": 2, "mc.1": "C" }
+  },
   "images": [
     {
       "filename": "case_003.png",
@@ -218,6 +233,15 @@ Each export is one JSON file:
 during annotation), so they can be rasterized and compared directly against
 ground-truth masks of the same images.
 
+`survey.answers` holds raw values keyed by item id: whole numbers for Likert
+and number items, the chosen letter (`A`–`E`) for knowledge questions, text for
+the optional free answer (left out when empty). Nothing in the file is scored
+and no correct answers are stored. `exportedAt` tells two exports of the same
+participant apart.
+
+> **`schemaVersion` 3** added the optional top-level `survey` object (study
+> variant only); the rest is unchanged from version 2.
+>
 > **`schemaVersion` 2** renamed the top-level `studentId` field to
 > `participantId`. Nothing else about the payload changed, so a reader that
 > needs to accept both can fall back:

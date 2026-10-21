@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { PRE_SURVEY } from '../survey/preSurvey'
+import { answersFor, seedSession } from '../test/surveyHelpers'
 
 // Study-variant counterpart of Header.test.jsx, guarding that the participant
 // flow is unchanged. The variant is read at import time, so the module graph
@@ -51,10 +53,7 @@ async function renderStudyHeader() {
 describe('Header in the study variant', () => {
   beforeEach(() => {
     localStorage.clear()
-    localStorage.setItem(
-      'seg-annotate:session',
-      JSON.stringify({ participantId: 'P-42', treatment: null }),
-    )
+    seedSession('P-42')
     localStorage.setItem('seg-annotate:lang', 'en')
   })
 
@@ -86,7 +85,7 @@ describe('Header in the study variant', () => {
     expect(screen.getByText('Segmentation Annotation Study')).toBeInTheDocument()
   })
 
-  it('exports straight away under a name carrying the participant ID', async () => {
+  it('exports straight away as one file named after the participant ID', async () => {
     const { screen, downloadJSON } = await renderStudyHeader()
 
     screen.getByRole('button', { name: '⬇ Export' }).click()
@@ -94,7 +93,42 @@ describe('Header in the study variant', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
     expect(downloadJSON).toHaveBeenCalledTimes(1)
     const [filename, payload] = downloadJSON.mock.calls[0]
-    expect(filename).toMatch(/^annotations_P-42_.+\.json$/)
+    expect(filename).toBe('P-42.json')
     expect(payload.participantId).toBe('P-42')
+  })
+
+  it('puts the survey answers, consent time and shapes into that file', async () => {
+    const { screen, downloadJSON } = await renderStudyHeader()
+
+    screen.getByRole('button', { name: '⬇ Export' }).click()
+
+    const [, payload] = downloadJSON.mock.calls[0]
+    expect(payload.survey.version).toBe('pre-1')
+    expect(payload.survey.consentAcceptedAt).toBe('2026-01-01T10:00:00.000Z')
+    expect(payload.survey.completedAt).toBe('2026-01-01T10:05:00.000Z')
+    expect(payload.survey.answers).toEqual(Object.assign({}, ...PRE_SURVEY.sections.map(answersFor)))
+    expect(payload.images[0].shapes).toHaveLength(1)
+    expect(JSON.stringify(payload)).not.toContain('blob:x')
+  })
+
+  it('tells the participant which file to upload after exporting', async () => {
+    const { screen } = await renderStudyHeader()
+
+    screen.getByRole('button', { name: '⬇ Export' }).click()
+
+    expect(await screen.findByRole('dialog')).toHaveTextContent('P-42.json')
+  })
+
+  it('names the file after an edited participant ID', async () => {
+    const { screen, downloadJSON } = await renderStudyHeader()
+
+    screen.getByRole('button', { name: 'P-42' }).click()
+    const input = await screen.findByDisplayValue('P-42')
+    const { fireEvent } = await import('@testing-library/react')
+    fireEvent.change(input, { target: { value: 'P-43' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    screen.getByRole('button', { name: '⬇ Export' }).click()
+
+    expect(downloadJSON.mock.calls[0][0]).toBe('P-43.json')
   })
 })
