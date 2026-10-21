@@ -1,4 +1,4 @@
-import { SCALES } from '../survey/preSurvey'
+import { SCALES } from '../survey/scales'
 
 // A fresh survey: nothing accepted, nothing answered, not submitted. Answers
 // are kept raw, keyed by item id.

@@ -8,7 +8,7 @@ import SurveyItem, { SURVEY_ERROR_ID } from './SurveyItem'
 // through `onAnswer(itemId, value)` — so any survey definition can reuse it.
 // Opens on the first page that still has gaps, which is how a reload
 // resumes where the participant left off.
-export default function SurveyForm({ definition, answers, onAnswer, onSubmit }) {
+export default function SurveyForm({ definition, answers, onAnswer, onSubmit, submitKey = 'survey.submit' }) {
   const { t } = useApp()
   const steps = useMemo(() => surveySteps(definition), [definition])
   const [index, setIndex] = useState(() => firstIncompleteStep(steps, answers))
@@ -95,7 +95,7 @@ export default function SurveyForm({ definition, answers, onAnswer, onSubmit }) 
           <span />
         )}
         <button type="button" onClick={goNext} className="toolbar-btn-primary">
-          {isLast ? t('survey.submit') : t('survey.next')}
+          {isLast ? t(submitKey) : t('survey.next')}
         </button>
       </div>
     </div>

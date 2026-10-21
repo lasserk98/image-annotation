@@ -15,14 +15,14 @@ import {
 } from '../utils/storage'
 import { parseClasses, sortClassesByName } from '../utils/classes'
 import { emptySurvey, isSurveyComplete, sanitizeSurvey } from '../utils/survey'
-import { PRE_SURVEY } from '../survey/preSurvey'
+import { ACTIVE_SURVEY } from '../survey/activeSurvey'
 import { translate } from '../i18n/translations'
 import { isCreatorVariant } from '../variant'
 
 const AppContext = createContext(null)
 
 const MAX_HISTORY = 50
-const SURVEY_VERSION = PRE_SURVEY.version
+const SURVEY_VERSION = ACTIVE_SURVEY.version
 
 // The saved session is the participant ID, treatment and survey progress, so a
 // reload resumes where the participant left off. The creator has no session.
@@ -83,7 +83,7 @@ const initialState = {
   treatment: initialSession?.treatment ?? null,
   // Consent and survey answers. A session saved before surveys existed, or
   // for another survey version, simply starts the survey from the beginning.
-  survey: sanitizeSurvey(initialSession?.survey, PRE_SURVEY),
+  survey: sanitizeSurvey(initialSession?.survey, ACTIVE_SURVEY),
   lang: storedLang === 'de' || storedLang === 'en' ? storedLang : defaultLang,
   theme: initialTheme,
   // Never persisted. The Creator variant is always unlocked; the study variant
@@ -159,7 +159,7 @@ function reducer(state, action) {
       return { ...state, survey }
     }
     case 'COMPLETE_SURVEY': {
-      if (state.survey.completedAt || !isSurveyComplete(PRE_SURVEY, state.survey.answers)) return state
+      if (state.survey.completedAt || !isSurveyComplete(ACTIVE_SURVEY, state.survey.answers)) return state
       const survey = { ...state.survey, completedAt: action.at }
       persistSession({ ...state, survey })
       return { ...state, survey }

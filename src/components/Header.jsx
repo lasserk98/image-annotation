@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
-import { PRE_SURVEY } from '../survey/preSurvey'
+import { ACTIVE_SURVEY } from '../survey/activeSurvey'
 import { sanitizeSurvey } from '../utils/survey'
 import { buildExportData, downloadJSON, participantFilename } from '../utils/export'
 import UsageModal from './UsageModal'
@@ -46,7 +46,7 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
   // their survey answers. Those go through the same check as a stored survey,
   // so a cleared free-text box leaves no empty answer in the file.
   function downloadAnnotations(filename) {
-    const survey = isCreatorVariant ? null : sanitizeSurvey(state.survey, PRE_SURVEY)
+    const survey = isCreatorVariant ? null : sanitizeSurvey(state.survey, ACTIVE_SURVEY)
     const data = buildExportData({ participantId, treatment, images, shapesByImage, classes, survey })
     downloadJSON(filename, data)
   }

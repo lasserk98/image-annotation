@@ -1,5 +1,5 @@
 import { useApp } from '../../context/AppContext'
-import { SCALES } from '../../survey/preSurvey'
+import { SCALES } from '../../survey/scales'
 
 // One question, rendered by its type. Answers go up as raw values through
 // `onChange(itemId, value)`; the survey wording is always the definition's

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { PRE_SURVEY, SCALES } from './preSurvey'
+import { PRE_SURVEY } from './preSurvey'
+import { SCALES } from './scales'
 
 const sections = PRE_SURVEY.sections
 const itemsOf = (id) => sections.find((s) => s.id === id).items

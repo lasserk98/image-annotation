@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
+import { isPostVariant } from '../variant'
 import ScreenControls from './ScreenControls'
 
 export default function LoginScreen() {
@@ -26,11 +27,14 @@ export default function LoginScreen() {
     // This only ever runs in the browser, so the password ships inside the
     // app bundle — it keeps casual visitors out of the study page, it is not
     // an access-control boundary.
-    if (password !== study.studyPassword) {
+    // Both passwords live in study.json, so both ship in every bundle that
+    // imports it: they keep casual visitors out, they do not gate by time.
+    if (password !== (isPostVariant ? study.postPassword : study.studyPassword)) {
       setError(t('login.errorPassword'))
       return
     }
-    const finalTreatment = urlTreatment || treatment || null
+    // Treatments belong to the annotation study; the post page has none.
+    const finalTreatment = isPostVariant ? null : urlTreatment || treatment || null
     login(id, finalTreatment)
   }
 
@@ -71,7 +75,7 @@ export default function LoginScreen() {
           {studyName}
         </h1>
         <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
-          {t('login.subtitle')}
+          {t(isPostVariant ? 'login.subtitlePost' : 'login.subtitle')}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,7 +128,7 @@ export default function LoginScreen() {
             />
           </div>
 
-          {!lockedTreatment && study.treatments?.length > 0 && (
+          {!isPostVariant && !lockedTreatment && study.treatments?.length > 0 && (
             <div>
               <label
                 htmlFor="treatment"

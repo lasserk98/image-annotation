@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "dev:study": "vite --mode study",
+    "dev:post": "vite --mode post",
     "build": "vite build",
     "build:study": "vite build --mode study --outDir dist/study",
+    "build:post": "vite build --mode post --outDir dist/post",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run"

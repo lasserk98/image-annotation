@@ -1,4 +1,8 @@
-const SESSION_KEY = 'seg-annotate:session'
+import { isPostVariant } from '../variant'
+
+// The study and post pages are served from one origin, so each keeps its
+// session under its own key and can never read the other's.
+const SESSION_KEY = isPostVariant ? 'seg-annotate:post-session' : 'seg-annotate:session'
 const CLASSES_KEY = 'seg-annotate:classes'
 const LANG_KEY = 'seg-annotate:lang'
 const THEME_KEY = 'seg-annotate:theme'

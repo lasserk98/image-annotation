@@ -33,19 +33,21 @@ npm run preview # serve the production build locally to sanity-check it
 (GitHub Pages, Netlify, a plain web server, or opened as a zip and run from
 `file://`) with no backend required.
 
-## Two variants
+## Three variants
 
-One codebase builds two products, selected at build time with
+One codebase builds three products, selected at build time with
 `VITE_APP_VARIANT`:
 
 | Variant | Build | What it is |
 |---|---|---|
 | `creator` (default) | `npm run build` | The open tool: no participant ID, class editing always available, and an Export button that asks for a file name. Exports contain polygon shapes only — never the images. This is what the current deployed site serves. |
-| `study` | `npm run build:study` | The participant flow described below: a participant ID and shared study password to enter, a fixed class list that cannot be changed, German by default (English switch). |
+| `study` | `npm run build:study` | The participant flow described below: a participant ID and shared study password to enter, a fixed class list that cannot be changed, German by default (English switch). Served at `<site>/study/`. |
+| `post` | `npm run build:post` | The post-survey page: study ID and a separate password, the post-intervention questionnaire and video-quality ratings (one question per page), then an export of the answers only. No annotation, no images. Served at `<site>/post/`. See [The post-survey page](#the-post-survey-page). |
 
 For development, `npm run dev` starts the creator variant and
-`npm run dev:study` starts the study variant (both read `VITE_APP_VARIANT`,
-which `.env.study` sets for the `study` mode). The
+`npm run dev:study` starts the study variant and `npm run dev:post` the post
+page (all read `VITE_APP_VARIANT`, which `.env.study` / `.env.post` set for
+their modes). The
 participant-flow sections below describe the `study` variant.
 
 ## How participants use it
@@ -170,7 +172,8 @@ single locale so every participant gets the same order — and therefore the sam
   "studyName": { "en": "Segmentation Annotation Study", "de": "…" },
   "instructions": { "en": "Shown in the usage (ⓘ) modal.", "de": "…" },
   "treatments": [],
-  "studyPassword": "changeme"
+  "studyPassword": "changeme",
+  "postPassword": "changeme-post"
 }
 ```
 
@@ -183,6 +186,34 @@ treatment for that link, handy for sending different participants different
 links. `studyPassword` is the shared password participants enter with their ID
 — see above for what it does and does not protect against. **Change it from
 `changeme` before the study.**
+
+### The post-survey page
+
+The post page is for the questionnaire weeks after the study. The participant
+enters the **same study ID** as before and the `postPassword` from
+`src/config/study.json` (a separate password, so the page can be opened only
+when the invitation goes out), with no consent step (consent was given at the
+start of the study). It then asks 18 questions, one per page: the
+post-intervention questionnaire (10, agreement scale), the AI-augmented video
+rating (5) and the conventional video rating (3), both in school grades 1–6.
+After submitting, the done screen offers **Export answers**, which saves
+`<id>_post.json` (the `_post` keeps it from colliding with the study's
+`<id>.json` in a shared folder) and says to upload it.
+
+- **Wording** lives in `src/survey/postSurvey.js` as data, in German, from the
+  study owner. Answer ids are `post.1`–`post.10`, `ai.1`–`ai.5`, `conv.1`–`conv.3`;
+  all values are raw numbers, with no scoring and no answer key.
+- **File**: only the study ID, `exportedAt`, and the `survey` block (see
+  [Annotation data format](#annotation-data-format)). No images, shapes or
+  treatment. Linking to the study file relies on the same ID being typed on
+  both pages.
+- **Sessions**: the post page keeps its progress under its own
+  `localStorage` key, so a study session in the same browser never leaks into
+  it or the other way round. Logging out before exporting discards the
+  answers.
+- **`postPassword`** is as light protection as `studyPassword`: it ships in the
+  public bundle. **Change it from `changeme-post` before sending the invitation.**
+- The follow-up questionnaire (FBS) is not part of this page yet.
 
 ### Adding more UI languages
 
@@ -239,6 +270,27 @@ the optional free answer (left out when empty). Nothing in the file is scored
 and no correct answers are stored. `exportedAt` tells two exports of the same
 participant apart.
 
+The post page's `<id>_post.json` has the same top level with only
+`participantId`, `exportedAt`, `tool`, `schemaVersion` and `survey` (no
+`images`, no `treatment`). Its `survey.version` is `post-1` (the study file's is
+`pre-1`) and `consentAcceptedAt` is `null`; the answers are numbers keyed
+`post.*`, `ai.*` and `conv.*`:
+
+```json
+{
+  "participantId": "P-1234567",
+  "exportedAt": "2026-12-01T12:00:00.000Z",
+  "tool": "image-annotation",
+  "schemaVersion": 3,
+  "survey": {
+    "version": "post-1",
+    "consentAcceptedAt": null,
+    "completedAt": "2026-12-01T11:58:00.000Z",
+    "answers": { "post.1": 2, "ai.1": 1, "conv.3": 3 }
+  }
+}
+```
+
 > **`schemaVersion` 3** added the optional top-level `survey` object (study
 > variant only); the rest is unchanged from version 2.
 >
@@ -251,7 +303,9 @@ participant apart.
 
 This repo is public and deploys automatically via GitHub Pages: every push
 to `main` runs `.github/workflows/deploy.yml`, which builds the app and
-publishes `dist/` to **https://lasserk98.github.io/image-annotation/**. No
+publishes `dist/` to **https://lasserk98.github.io/image-annotation/**
+(the creator tool; the workflow also builds the study page into `dist/study/` and the
+post-survey page into `dist/post/`, served at `/study/` and `/post/`). No
 server code or database is required for the default "download only"
 workflow this tool implements — check progress under the repo's **Actions**
 tab.

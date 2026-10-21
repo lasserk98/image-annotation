@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { buildExportData, downloadJSON, participantFilename, toJsonFilename } from './export'
+import {
+  buildExportData,
+  buildPostExportData,
+  downloadJSON,
+  participantFilename,
+  toJsonFilename,
+} from './export'
 
 const IMAGES = [{ id: 'img-1', name: 'a/scan.png', url: 'blob:x', width: 200, height: 100 }]
 const CLASSES = [{ id: 'c1', name: 'Nerve' }]
@@ -137,6 +143,64 @@ describe('participantFilename', () => {
   it('falls back to a fixed name when nothing usable is left', () => {
     expect(participantFilename('   ')).toBe('study.json')
     expect(participantFilename(null)).toBe('study.json')
+  })
+})
+
+const POST_SURVEY_STATE = {
+  version: 'post-1',
+  consentAcceptedAt: null,
+  answers: { 'post.1': 2, 'ai.1': 1, 'conv.3': 3 },
+  completedAt: '2026-12-01T11:58:00.000Z',
+}
+
+describe('buildPostExportData', () => {
+  it('holds the participant, the times and the raw answers, and nothing else', () => {
+    const data = buildPostExportData({ participantId: 'P-1', survey: POST_SURVEY_STATE })
+
+    expect(Object.keys(data).sort()).toEqual(
+      ['exportedAt', 'participantId', 'schemaVersion', 'survey', 'tool'].sort(),
+    )
+    expect(data).toMatchObject({ participantId: 'P-1', tool: 'image-annotation', schemaVersion: 3 })
+    expect(data.survey).toEqual(POST_SURVEY_STATE)
+  })
+
+  it('has no images, shapes or treatment', () => {
+    const data = buildPostExportData({ participantId: 'P-1', survey: POST_SURVEY_STATE })
+
+    expect(data).not.toHaveProperty('images')
+    expect(data).not.toHaveProperty('treatment')
+  })
+
+  it('exports a copy of the survey and a current timestamp', () => {
+    const data = buildPostExportData({ participantId: 'P-1', survey: POST_SURVEY_STATE })
+
+    expect(data.survey).not.toBe(POST_SURVEY_STATE)
+    expect(data.survey.answers).not.toBe(POST_SURVEY_STATE.answers)
+    expect(Number.isNaN(Date.parse(data.exportedAt))).toBe(false)
+  })
+
+  it('contains nothing that could hold a score or answer key', () => {
+    const data = buildPostExportData({ participantId: 'P-1', survey: POST_SURVEY_STATE })
+
+    expect(JSON.stringify(data)).not.toMatch(/score|correct|answerKey/i)
+  })
+})
+
+describe('participantFilename with a suffix', () => {
+  it('adds the suffix before the extension', () => {
+    expect(participantFilename('P-1', 'post')).toBe('P-1_post.json')
+  })
+
+  it('cleans the ID the same way', () => {
+    expect(participantFilename('a b/c', 'post')).toBe('a_b_c_post.json')
+  })
+
+  it('uses the fallback name with the suffix', () => {
+    expect(participantFilename('  ', 'post')).toBe('study_post.json')
+  })
+
+  it('is unchanged without a suffix, so the study file name stays <id>.json', () => {
+    expect(participantFilename('P-1')).toBe('P-1.json')
   })
 })
 

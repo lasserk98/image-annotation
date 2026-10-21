@@ -35,13 +35,14 @@ export function fillSection({ fireEvent, screen, within }, section) {
 
 // Fills the page that is showing, then clicks Next on each page and Submit on
 // the last one, so a test can walk the whole survey whatever its page layout.
-// Pass `fromStep` to continue a survey that is already partly through.
-export function answerPages(rtl, definition, fromStep = 0) {
+// Pass `fromStep` to continue a survey that is already partly through, and
+// `submitLabel` where the last button reads differently (the post page).
+export function answerPages(rtl, definition, { fromStep = 0, submitLabel = 'Submit and start' } = {}) {
   const steps = surveySteps(definition)
   steps.slice(fromStep).forEach((step, i, rest) => {
     fillSection(rtl, step)
     const isLast = i === rest.length - 1
-    rtl.fireEvent.click(rtl.screen.getByRole('button', { name: isLast ? 'Submit and start' : 'Next' }))
+    rtl.fireEvent.click(rtl.screen.getByRole('button', { name: isLast ? submitLabel : 'Next' }))
   })
 }
 

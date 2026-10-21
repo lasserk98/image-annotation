@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import study from './config/study.json'
+import { POST_SURVEY } from './survey/postSurvey'
 import { PRE_SURVEY } from './survey/preSurvey'
 import { answerPages, seedSession } from './test/surveyHelpers'
 
@@ -149,6 +150,41 @@ describe('App', () => {
 
       expect(screen.getByLabelText('Participant ID')).toBeInTheDocument()
       expect(localStorage.getItem('seg-annotate:session')).toBeNull()
+    })
+  })
+
+  describe('post page flow', () => {
+    beforeEach(() => localStorage.setItem('seg-annotate:lang', 'en'))
+
+    const helpers = () => ({ fireEvent: rtl.fireEvent, screen: rtl.screen, within: rtl.within })
+
+    it('walks from login through the 18 questions to the done screen, with no consent step', async () => {
+      const screen = await renderApp('post')
+      rtl.fireEvent.change(screen.getByLabelText('Participant ID'), { target: { value: 'P-9' } })
+      rtl.fireEvent.change(screen.getByLabelText('Study password'), { target: { value: study.postPassword } })
+      rtl.fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+
+      expect(screen.getByText('Part 1 of 3 · Question 1 of 10')).toBeInTheDocument()
+      answerPages(helpers(), POST_SURVEY, { submitLabel: 'Submit' })
+
+      expect(screen.getByRole('heading', { name: 'Thank you for taking part' })).toBeInTheDocument()
+      expect(screen.getByText('P-9_post.json')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '⬇ Export' })).not.toBeInTheDocument()
+    })
+
+    it('resumes in the middle of the survey after a reload', async () => {
+      localStorage.setItem(
+        'seg-annotate:post-session',
+        JSON.stringify({
+          participantId: 'P-9',
+          treatment: null,
+          survey: { version: 'post-1', consentAcceptedAt: null, answers: { 'post.1': 1, 'post.2': 1 }, completedAt: null },
+        }),
+      )
+
+      const screen = await renderApp('post')
+
+      expect(screen.getByText('Part 1 of 3 · Question 3 of 10')).toBeInTheDocument()
     })
   })
 

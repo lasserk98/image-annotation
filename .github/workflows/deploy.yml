@@ -24,9 +24,11 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      # Creator build first (it clears dist/), then the study build into dist/study/.
+      # Creator build first (it clears dist/), then the study build into
+      # dist/study/ and the post-survey build into dist/post/.
       - run: npm run build
       - run: npm run build:study
+      - run: npm run build:post
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

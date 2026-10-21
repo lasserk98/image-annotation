@@ -5,6 +5,7 @@ export const translations = {
     'login.subtitle': 'Enter your participant ID and the study password to start annotating. Your images never leave your browser.',
     'login.password': 'Study password',
     'login.errorPassword': 'Please enter the correct study password.',
+    'login.subtitlePost': 'Final questionnaire: enter the participant ID you used in the study, and the password from your email.',
 
     'consent.continue': 'Continue',
 
@@ -13,6 +14,12 @@ export const translations = {
     'survey.back': 'Back',
     'survey.next': 'Next',
     'survey.submit': 'Submit and start',
+    'survey.submitPost': 'Submit',
+    'postDone.title': 'Thank you for taking part',
+    'postDone.body': 'Your answers are saved in this browser. Export them now and upload the file: that is the last step.',
+    'postDone.idLabel': 'Participant ID',
+    'postDone.fileLabel': 'File',
+    'postDone.export': 'Export answers',
     'survey.incomplete': 'Please answer all required questions ({n} missing).',
     'survey.optional': 'optional',
     'login.participantId': 'Participant ID',
@@ -172,6 +179,7 @@ export const translations = {
     'login.subtitle': 'Gib deine Teilnehmer-ID und das Studienpasswort ein, um mit der Annotation zu beginnen. Deine Bilder verlassen niemals deinen Browser.',
     'login.password': 'Studienpasswort',
     'login.errorPassword': 'Bitte gib das richtige Studienpasswort ein.',
+    'login.subtitlePost': 'Abschlussfragebogen: Gib die Teilnehmer-ID ein, die du in der Studie verwendet hast, und das Passwort aus deiner E-Mail.',
 
     'consent.continue': 'Weiter',
 
@@ -180,6 +188,12 @@ export const translations = {
     'survey.back': 'Zurück',
     'survey.next': 'Weiter',
     'survey.submit': 'Abschließen und starten',
+    'survey.submitPost': 'Abschließen',
+    'postDone.title': 'Vielen Dank für deine Teilnahme',
+    'postDone.body': 'Deine Antworten sind in diesem Browser gespeichert. Exportiere sie jetzt und lade die Datei hoch: Das ist der letzte Schritt.',
+    'postDone.idLabel': 'Teilnehmer-ID',
+    'postDone.fileLabel': 'Datei',
+    'postDone.export': 'Antworten exportieren',
     'survey.incomplete': 'Bitte beantworte alle Pflichtfragen ({n} fehlen).',
     'survey.optional': 'optional',
     'login.participantId': 'Teilnehmer-ID',

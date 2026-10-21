@@ -44,6 +44,19 @@ export function buildExportData({
   }
 }
 
+// The post-survey file: the participant ID and the raw questionnaire answers,
+// nothing else — no images, shapes or treatment. Analysed outside this repo,
+// weeks after the study.
+export function buildPostExportData({ participantId, survey }) {
+  return {
+    participantId,
+    exportedAt: new Date().toISOString(),
+    tool: 'image-annotation',
+    schemaVersion: 3,
+    survey: copySurvey(survey),
+  }
+}
+
 function copySurvey({ version, consentAcceptedAt, completedAt, answers }) {
   return { version, consentAcceptedAt, completedAt, answers: { ...answers } }
 }
@@ -70,12 +83,14 @@ export function toJsonFilename(name, fallback = 'classes') {
 // leading dots are dropped so the name can be neither hidden nor a path
 // climb. Built directly rather than through `toJsonFilename`, which would
 // read the tail of an ID like `P.12` as a file extension.
-export function participantFilename(participantId) {
+// An optional `suffix` tells files of the same participant apart: the post
+// survey is `<id>_post.json`, so it never collides with the study `<id>.json`.
+export function participantFilename(participantId, suffix = '') {
   const base = String(participantId ?? '')
     .trim()
     .replace(/[^A-Za-z0-9._-]/g, '_')
     .replace(/^\.+/, '')
-  return `${base || 'study'}.json`
+  return `${base || 'study'}${suffix ? `_${suffix}` : ''}.json`
 }
 
 export function downloadJSON(filename, data) {

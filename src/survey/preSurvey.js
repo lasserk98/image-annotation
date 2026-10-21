@@ -6,14 +6,6 @@
 // Item types: number {min,max}, choice {options}, likert {scale}, text.
 // Every item is required unless it says `optional: true`.
 
-// Likert scales: values run min..max; `labels` are the captions shown for
-// those values (a scale may label only its ends).
-export const SCALES = {
-  agreement: {"min": 1, "max": 5, "labels": {"1": "stimmt voll zu", "2": "stimmt eher zu", "3": "teils/teils", "4": "stimmt eher nicht zu", "5": "stimmt nicht zu"}},
-  frequency: {"min": 1, "max": 5, "labels": {"1": "sehr oft", "5": "nie"}},
-  competence: {"min": 1, "max": 5, "labels": {"1": "sehr gut", "5": "sehr schlecht"}},
-}
-
 export const PRE_SURVEY = {
   version: "pre-1",
   title: "Potenziale KI-augmentierter OP-Lehrvideos in der Felsenbeinchirurgie",

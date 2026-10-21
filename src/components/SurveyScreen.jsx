@@ -1,5 +1,6 @@
 import { useApp } from '../context/AppContext'
-import { PRE_SURVEY } from '../survey/preSurvey'
+import { ACTIVE_SURVEY } from '../survey/activeSurvey'
+import { isPostVariant } from '../variant'
 import ScreenControls from './ScreenControls'
 import SurveyForm from './survey/SurveyForm'
 
@@ -23,10 +24,11 @@ export default function SurveyScreen() {
         }}
       >
         <SurveyForm
-          definition={PRE_SURVEY}
+          definition={ACTIVE_SURVEY}
           answers={state.survey.answers}
           onAnswer={setSurveyAnswer}
           onSubmit={completeSurvey}
+          submitKey={isPostVariant ? 'survey.submitPost' : 'survey.submit'}
         />
         <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
           <button type="button" onClick={logout} className="link-btn link-btn-muted">
