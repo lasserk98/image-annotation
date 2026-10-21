@@ -7,6 +7,7 @@ import { THEME_CYCLE, THEME_LABEL_KEYS } from '../utils/theme'
 export default function LoginScreen() {
   const { login, t, state, setLang, setTheme } = useApp()
   const [participantId, setParticipantId] = useState('')
+  const [password, setPassword] = useState('')
   const [treatment, setTreatment] = useState('')
   const [error, setError] = useState('')
 
@@ -21,6 +22,13 @@ export default function LoginScreen() {
     const id = participantId.trim()
     if (!id) {
       setError(t('login.errorEmpty'))
+      return
+    }
+    // This only ever runs in the browser, so the password ships inside the
+    // app bundle — it keeps casual visitors out of the study page, it is not
+    // an access-control boundary.
+    if (password !== study.studyPassword) {
+      setError(t('login.errorPassword'))
       return
     }
     const finalTreatment = urlTreatment || treatment || null
@@ -111,6 +119,30 @@ export default function LoginScreen() {
                 setError('')
               }}
               placeholder={t('login.idPlaceholder')}
+              className="field"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? 'participant-id-error' : undefined}
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="study-password"
+              className="block text-xs font-semibold mb-1.5"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              {t('login.password')}
+            </label>
+            <input
+              id="study-password"
+              name="study-password"
+              type="password"
+              autoComplete="off"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                setError('')
+              }}
               className="field"
               aria-invalid={Boolean(error)}
               aria-describedby={error ? 'participant-id-error' : undefined}

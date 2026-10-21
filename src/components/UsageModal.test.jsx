@@ -20,7 +20,10 @@ async function renderModal(variant) {
 }
 
 describe('UsageModal', () => {
-  beforeEach(() => localStorage.clear())
+  beforeEach(() => {
+    localStorage.clear()
+    localStorage.setItem('seg-annotate:lang', 'en')
+  })
 
   afterEach(() => {
     unmountCurrent()
@@ -59,6 +62,23 @@ describe('UsageModal', () => {
       expect(screen.getByText('Study instructions')).toBeInTheDocument()
       expect(screen.getByText('How to annotate')).toBeInTheDocument()
       expect(screen.getByText('Keyboard shortcuts')).toBeInTheDocument()
+    })
+
+    it('translates the shortcut key labels, not only their descriptions', async () => {
+      localStorage.setItem('seg-annotate:lang', 'de')
+
+      const screen = await renderModal('study')
+
+      expect(screen.getByText('Scrollen')).toBeInTheDocument()
+      expect(screen.getByText('Doppelklick auf Punkt')).toBeInTheDocument()
+      expect(screen.queryByText('Double-click vertex')).not.toBeInTheDocument()
+    })
+
+    it('says the classes are preset and never mentions Creator Mode', async () => {
+      const screen = await renderModal('study')
+
+      expect(screen.getByText(/classes are preset and fixed/i)).toBeInTheDocument()
+      expect(screen.queryByText(/Creator Mode/i)).not.toBeInTheDocument()
     })
 
     it('keeps the original participant export step', async () => {

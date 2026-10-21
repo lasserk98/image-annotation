@@ -62,22 +62,41 @@ describe('App', () => {
   })
 
   describe('study variant', () => {
-    it('shows the participant ID screen first', async () => {
+    it('shows the participant ID screen first, in German by default', async () => {
+      const screen = await renderApp('study')
+
+      expect(screen.getByLabelText('Teilnehmer-ID')).toBeInTheDocument()
+    })
+
+    it('respects a language the participant chose earlier', async () => {
+      localStorage.setItem('seg-annotate:lang', 'en')
+
       const screen = await renderApp('study')
 
       expect(screen.getByLabelText('Participant ID')).toBeInTheDocument()
     })
 
-    it('keeps class editing locked behind Creator Mode', async () => {
+    it('has no way into Creator Mode once logged in', async () => {
       localStorage.setItem(
         'seg-annotate:session',
         JSON.stringify({ participantId: 'P-1', treatment: null }),
       )
+      localStorage.setItem('seg-annotate:lang', 'en')
 
       const screen = await renderApp('study')
 
       expect(screen.queryByRole('button', { name: '+ Add class' })).not.toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /Enter Creator Mode/ })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Creator Mode/ })).not.toBeInTheDocument()
+      expect(screen.queryByText('CREATOR MODE')).not.toBeInTheDocument()
     })
+  })
+
+  it('lets the creator variant follow the browser language', async () => {
+    vi.spyOn(navigator, 'language', 'get').mockReturnValue('de-DE')
+
+    const screen = await renderApp('creator')
+
+    expect(screen.getByRole('button', { name: '⬇ Exportieren' })).toBeInTheDocument()
+    vi.restoreAllMocks()
   })
 })

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:study": "vite --mode study",
     "build": "vite build",
+    "build:study": "vite build --mode study --outDir dist/study",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run"

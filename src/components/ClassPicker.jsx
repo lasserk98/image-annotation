@@ -8,6 +8,7 @@ import {
   countClassUsage,
 } from '../utils/classes'
 import { downloadJSON } from '../utils/export'
+import { isCreatorVariant } from '../variant'
 import EditableField from './EditableField'
 import DeleteClassModal from './DeleteClassModal'
 import ExportFilenameModal from './ExportFilenameModal'
@@ -99,24 +100,29 @@ export default function ClassPicker() {
         <span className="panel-title">{t('classPicker.heading')}</span>
         <span className="count-badge">{classes.length}</span>
         <span className="flex-1" />
-        <button
-          onClick={() => inputRef.current?.click()}
-          className="link-btn"
-          title={t('classPicker.loadTitle')}
-        >
-          {t('classPicker.load')}
-        </button>
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".json,application/json"
-          hidden
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) handleFile(file)
-            e.target.value = ''
-          }}
-        />
+        {/* The study's classes are fixed, so only the creator can load a list. */}
+        {isCreatorVariant && (
+          <>
+            <button
+              onClick={() => inputRef.current?.click()}
+              className="link-btn"
+              title={t('classPicker.loadTitle')}
+            >
+              {t('classPicker.load')}
+            </button>
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".json,application/json"
+              hidden
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) handleFile(file)
+                e.target.value = ''
+              }}
+            />
+          </>
+        )}
       </div>
 
       {/* Everything here edits the class list itself — gated to Creator
@@ -195,7 +201,7 @@ export default function ClassPicker() {
 
       <div className="panel-body" aria-label={t('classPicker.heading')}>
         {classes.length === 0 ? (
-          <p className="panel-empty">{t(creatorMode ? 'classPicker.empty' : 'classPicker.emptyLocked')}</p>
+          <p className="panel-empty">{t('classPicker.empty')}</p>
         ) : visible.length === 0 ? (
           <p className="panel-empty">{t('classPicker.noMatches', { q: query.trim() })}</p>
         ) : (

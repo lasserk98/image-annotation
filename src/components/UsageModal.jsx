@@ -3,6 +3,8 @@ import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
 import { isCreatorVariant } from '../variant'
 
+// Keys named on the keyboard (N, Esc, Ctrl+Z) are shown literally; mouse
+// gestures use `keyLabelKey` so the chip is translated like its description.
 const SHORTCUT_KEYS = [
   { key: 'N', labelKey: 'usage.shortcut.newShape' },
   { key: '1–9', labelKey: 'usage.shortcut.classNumber' },
@@ -12,16 +14,17 @@ const SHORTCUT_KEYS = [
   { key: 'Ctrl+Z', labelKey: 'usage.shortcut.undo' },
   { key: 'Ctrl+Shift+Z', labelKey: 'usage.shortcut.redo' },
   { key: '← →', labelKey: 'usage.shortcut.arrows' },
-  { key: 'Scroll', labelKey: 'usage.shortcut.wheel' },
-  { key: 'Drag / Alt+drag', labelKey: 'usage.shortcut.pan' },
-  { key: 'Double-click vertex', labelKey: 'usage.shortcut.dblClickVertex' },
-  { key: 'Double-click edge', labelKey: 'usage.shortcut.dblClickEdge' },
+  { keyLabelKey: 'usage.key.scroll', labelKey: 'usage.shortcut.wheel' },
+  { keyLabelKey: 'usage.key.pan', labelKey: 'usage.shortcut.pan' },
+  { keyLabelKey: 'usage.key.dblClickVertex', labelKey: 'usage.shortcut.dblClickVertex' },
+  { keyLabelKey: 'usage.key.dblClickEdge', labelKey: 'usage.shortcut.dblClickEdge' },
 ]
 
 // Creators set up classes freely and choose their own export file name, so
-// steps 1 and 8 read differently for them than for participants.
+// steps 1 and 8 read differently for them than for participants (whose
+// classes are fixed).
 const STEP_KEYS = [
-  isCreatorVariant ? 'usage.creator.step1' : 'usage.step1',
+  isCreatorVariant ? 'usage.creator.step1' : 'usage.study.step1',
   'usage.step2',
   'usage.step3',
   'usage.step4',
@@ -108,8 +111,8 @@ export default function UsageModal({ onClose }) {
             {t('usage.shortcutsHeading')}
           </h3>
           <div className="space-y-1">
-            {SHORTCUT_KEYS.map(({ key, labelKey }) => (
-              <div key={key} className="flex items-center gap-3 text-sm py-0.5">
+            {SHORTCUT_KEYS.map(({ key, keyLabelKey, labelKey }) => (
+              <div key={key ?? keyLabelKey} className="flex items-center gap-3 text-sm py-0.5">
                 <code
                   className="text-[11px] px-1.5 py-0.5 rounded flex-shrink-0 min-w-[8.5rem] text-center"
                   style={{
@@ -118,7 +121,7 @@ export default function UsageModal({ onClose }) {
                     color: 'var(--text)',
                   }}
                 >
-                  {key}
+                  {key ?? t(keyLabelKey)}
                 </code>
                 <span style={{ color: 'var(--text-muted)' }}>{t(labelKey)}</span>
               </div>

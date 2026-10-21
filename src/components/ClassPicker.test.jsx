@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// These tests cover the locked Annotation Mode, which only exists in the
-// study variant (the creator variant is always unlocked). The variant and the
+// These tests cover the locked class list of the study variant (the creator
+// variant is always unlocked). The variant and the
 // provider's initial state are read at import time, so the module graph is
 // reset and re-imported per test — React and Testing Library included, so they
 // share one React instance with the fresh components.
@@ -11,6 +11,7 @@ let unmountCurrent = () => {}
 
 async function renderInAnnotationMode() {
   vi.resetModules()
+  localStorage.setItem('seg-annotate:lang', 'en')
   vi.stubEnv('VITE_APP_VARIANT', 'study')
   const { render, screen } = await import('@testing-library/react')
   const { AppProvider } = await import('../context/AppContext')
@@ -23,7 +24,7 @@ async function renderInAnnotationMode() {
   return screen
 }
 
-describe('ClassPicker in Annotation Mode (study variant, creatorMode: false)', () => {
+describe('ClassPicker in the study variant', () => {
   beforeEach(() => {
     localStorage.clear()
   })
@@ -34,17 +35,33 @@ describe('ClassPicker in Annotation Mode (study variant, creatorMode: false)', (
     vi.unstubAllEnvs()
   })
 
-  it('shows a button to load a class config file', async () => {
+  it('lists the fixed study classes', async () => {
     const screen = await renderInAnnotationMode()
 
-    expect(screen.getByRole('button', { name: '+ Load config' })).toBeInTheDocument()
+    expect(screen.getByText('18')).toBeInTheDocument()
+    expect(screen.getByText('Stapes')).toBeInTheDocument()
+    expect(screen.getByText('Chorda tympani')).toBeInTheDocument()
+    expect(screen.getByText('langer Ambossschenkel')).toBeInTheDocument()
   })
 
-  it('keeps class-editing controls hidden outside Creator Mode', async () => {
+  it('offers no way to load, add, clear or export classes', async () => {
     const screen = await renderInAnnotationMode()
 
+    expect(screen.queryByRole('button', { name: '+ Load config' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Export' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Clear all' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '+ Add class' })).not.toBeInTheDocument()
+  })
+
+  it('ignores a class list saved in the browser', async () => {
+    localStorage.setItem(
+      'seg-annotate:classes',
+      JSON.stringify([{ id: 'foreign', name: 'Foreign class', color: '#000000' }]),
+    )
+
+    const screen = await renderInAnnotationMode()
+
+    expect(screen.queryByText('Foreign class')).not.toBeInTheDocument()
+    expect(screen.getByText('Stapes')).toBeInTheDocument()
   })
 })

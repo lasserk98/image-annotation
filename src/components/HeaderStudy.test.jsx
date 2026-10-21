@@ -55,6 +55,7 @@ describe('Header in the study variant', () => {
       'seg-annotate:session',
       JSON.stringify({ participantId: 'P-42', treatment: null }),
     )
+    localStorage.setItem('seg-annotate:lang', 'en')
   })
 
   afterEach(() => {
@@ -64,13 +65,19 @@ describe('Header in the study variant', () => {
     vi.unstubAllEnvs()
   })
 
-  it('shows the participant ID, the lock toggle and log-out', async () => {
+  it('shows the participant ID and log-out', async () => {
     const { screen } = await renderStudyHeader()
 
     expect(screen.getByText('Participant ID')).toBeInTheDocument()
     expect(screen.getByText('P-42')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Enter Creator Mode/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Log out' })).toBeInTheDocument()
+  })
+
+  it('has no lock toggle or Creator Mode badge', async () => {
+    const { screen } = await renderStudyHeader()
+
+    expect(screen.queryByRole('button', { name: /Creator Mode/ })).not.toBeInTheDocument()
+    expect(screen.queryByText('CREATOR MODE')).not.toBeInTheDocument()
   })
 
   it('shows the study name rather than the creator app name', async () => {

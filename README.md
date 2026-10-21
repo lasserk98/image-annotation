@@ -41,20 +41,22 @@ One codebase builds two products, selected at build time with
 | Variant | Build | What it is |
 |---|---|---|
 | `creator` (default) | `npm run build` | The open tool: no participant ID, class editing always available, and an Export button that asks for a file name. Exports contain polygon shapes only — never the images. This is what the current deployed site serves. |
-| `study` | `VITE_APP_VARIANT=study npm run build` | The participant flow described below: participant ID screen, classes locked behind the Creator password. |
+| `study` | `npm run build:study` | The participant flow described below: a participant ID and shared study password to enter, a fixed class list that cannot be changed, German by default (English switch). |
 
 For development, `npm run dev` starts the creator variant and
-`VITE_APP_VARIANT=study npm run dev` starts the study variant. The
+`npm run dev:study` starts the study variant (both read `VITE_APP_VARIANT`,
+which `.env.study` sets for the `study` mode). The
 participant-flow sections below describe the `study` variant.
 
 ## How participants use it
 
-Classes must already be set up (see [Creator Mode](#creator-mode-vs-annotation-mode)
-below) before handing the app to a participant — Annotation Mode, which is
-what they'll see, can only pick from an existing list.
+The study's classes are fixed in the app (see
+[Study and creator classes](#study-and-creator-classes) below) — participants
+can only pick from that list.
 
 1. Enter a participant ID (any non-empty value — there's no roster to validate
-   against, but it's editable later via the ✎ next to Export in case of a typo).
+   against, but it's editable later via the ✎ next to Export in case of a typo)
+   and the shared study password.
 2. Drag & drop, or click "+ Add", to load one or more local images. Images are
    read straight into the browser (as object URLs) and are never uploaded.
 3. Pick a class in the left panel (or press `1`-`9` for the first nine).
@@ -83,28 +85,25 @@ behind the ⓘ icon in the header (translated along with the rest of the UI).
 
 ## Configuring the study
 
-### Creator Mode vs. Annotation Mode
+### Study and creator classes
 
-The app has two modes, toggled with the padlock icon in the header:
+- **Study variant**: the classes are the fixed list in
+  `src/config/studyClasses.json`. There is no Creator Mode, no way to add,
+  rename, delete or load classes, and a class list saved in the browser is
+  ignored. To change the list, edit that file and redeploy.
+- **Creator variant**: class editing is always available (create, rename,
+  delete, load and export a class list), and the list is saved in that
+  browser's `localStorage`.
 
-- **Annotation Mode** (the default) can only pick an existing class and draw
-  shapes with it. Nothing about the class list can be created, renamed, or
-  deleted here — this is what participants use.
-- **Creator Mode** unlocks everything below: creating, renaming, and deleting
-  classes, plus loading/exporting a class list. Unlocking it requires the
-  password in `src/config/study.json`'s `creatorPassword` field, and it
-  **never persists** — every fresh page load starts back in Annotation Mode.
-
-That password is a speed bump against a participant accidentally clicking
-into class management, **not real access control**: this app has no backend,
-so the password ships inside the public JS bundle and can be read (or the
-check bypassed entirely) by anyone using their browser's dev tools. Don't
-rely on it to keep out a motivated user.
+The study password is checked in the browser, so it ships inside the public JS
+bundle and can be read by anyone using their browser's dev tools. It keeps
+casual visitors out of the study page; it is **not real access control**.
 
 ### `src/config/classes.json` — the default class list
 
 Bundled into the app at build time. Ships empty (`[]`) — there is no default
-class list, so classes must be set up in Creator Mode before annotating.
+class list in the creator variant; classes are set up there before annotating.
+(The study variant uses `src/config/studyClasses.json` instead.)
 
 Classes can be set up in two ways, and both are saved to that browser's
 `localStorage` so they stay active across reloads:
@@ -135,14 +134,14 @@ with `A`) and digit-aware (`Class 2` before `Class 10`), and it is pinned to a
 single locale so every participant gets the same order — and therefore the same
 `1`-`9` shortcut mapping — regardless of their browser's language settings.
 
-### `src/config/study.json` — study name, instructions, treatments, creator password
+### `src/config/study.json` — study name, instructions, treatments, study password
 
 ```json
 {
   "studyName": { "en": "Segmentation Annotation Study", "de": "…" },
   "instructions": { "en": "Shown in the usage (ⓘ) modal.", "de": "…" },
   "treatments": [],
-  "creatorPassword": "changeme"
+  "studyPassword": "changeme"
 }
 ```
 
@@ -152,8 +151,9 @@ languages) or `{ "en": "...", "de": "..." }` for translated copy. If
 their export). You can also assign a treatment via URL, e.g.
 `https://your-deploy-url/?treatment=A` — this skips the picker and locks the
 treatment for that link, handy for sending different participants different
-links. `creatorPassword` gates Creator Mode — see above for what it does and
-does not protect against.
+links. `studyPassword` is the shared password participants enter with their ID
+— see above for what it does and does not protect against. **Change it from
+`changeme` before the study.**
 
 ### Adding more UI languages
 

@@ -4,33 +4,17 @@ import study from '../config/study.json'
 import { buildExportData, downloadJSON } from '../utils/export'
 import UsageModal from './UsageModal'
 import ExportWarningModal from './ExportWarningModal'
-import CreatorModeModal from './CreatorModeModal'
 import ExportFilenameModal from './ExportFilenameModal'
 import { isCreatorVariant } from '../variant'
 import EditableField from './EditableField'
 import { ThemeIcon } from './ThemeToggle'
 import { THEME_CYCLE, THEME_LABEL_KEYS } from '../utils/theme'
 
-function LockIcon({ locked }) {
-  return (
-    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <rect x="3" y="7.2" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
-      {locked ? (
-        <path d="M5.2 7.2V5a2.8 2.8 0 0 1 5.6 0v2.2" stroke="currentColor" strokeWidth="1.3" />
-      ) : (
-        <path d="M5.2 7.2V5a2.8 2.8 0 0 1 5.3-1.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      )}
-    </svg>
-  )
-}
-
 export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRight }) {
-  const { state, logout, clearJustLoggedIn, updateParticipantId, setLang, setTheme, enterCreatorMode, exitCreatorMode, t } =
-    useApp()
+  const { state, logout, clearJustLoggedIn, updateParticipantId, setLang, setTheme, t } = useApp()
   const { participantId, treatment, images, shapesByImage, classes, lang, theme, creatorMode } = state
   const [showUsage, setShowUsage] = useState(false)
   const [showExportWarning, setShowExportWarning] = useState(false)
-  const [showCreatorModal, setShowCreatorModal] = useState(false)
   const [showExportNameModal, setShowExportNameModal] = useState(false)
 
   // Header is remounted fresh each time Workspace swaps in for LoginScreen,
@@ -234,19 +218,6 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
         >
           <ThemeIcon theme={theme} />
         </button>
-        {!isCreatorVariant && (
-          <button
-            // Locking never needs the password, only unlocking does — a
-            // participant should always be able to back out with one click.
-            onClick={() => (creatorMode ? exitCreatorMode() : setShowCreatorModal(true))}
-            className="toolbar-btn"
-            data-active={creatorMode}
-            title={t(creatorMode ? 'header.creatorModeExitTitle' : 'header.creatorModeEnterTitle')}
-            aria-label={t(creatorMode ? 'header.creatorModeExitTitle' : 'header.creatorModeEnterTitle')}
-          >
-            <LockIcon locked={!creatorMode} />
-          </button>
-        )}
         <button
           onClick={() => setLang(lang === 'en' ? 'de' : 'en')}
           className="toolbar-btn"
@@ -279,15 +250,6 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
           onConfirm={(filename) => {
             downloadAnnotations(filename)
             setShowExportNameModal(false)
-          }}
-        />
-      )}
-      {showCreatorModal && (
-        <CreatorModeModal
-          onCancel={() => setShowCreatorModal(false)}
-          onSuccess={() => {
-            enterCreatorMode()
-            setShowCreatorModal(false)
           }}
         />
       )}

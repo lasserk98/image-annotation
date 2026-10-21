@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useReducer } from 'react'
 import classesConfig from '../config/classes.json'
+import studyClassesConfig from '../config/studyClasses.json'
 import {
   loadSession,
   saveSession,
@@ -12,7 +13,7 @@ import {
   loadTheme,
   saveTheme,
 } from '../utils/storage'
-import { sortClassesByName } from '../utils/classes'
+import { parseClasses, sortClassesByName } from '../utils/classes'
 import { translate } from '../i18n/translations'
 import { isCreatorVariant } from '../variant'
 
@@ -40,15 +41,22 @@ function applyTheme(theme) {
 // The Creator variant has no participant, so a session saved by an earlier
 // visit (or the study build on the same origin) is ignored rather than shown.
 const initialSession = isCreatorVariant ? null : loadSession()
-const storedClasses = loadClasses()
+// The creator starts from the (empty) bundled list and keeps whatever list they
+// loaded; the study is locked to its fixed list, so a list saved in this
+// browser is ignored rather than trusted.
+const defaultClasses = isCreatorVariant ? classesConfig : parseClasses(studyClassesConfig)
+const storedClasses = isCreatorVariant ? loadClasses() : null
 // Every class list is sorted on the way in — whether it came from the bundled
-// config or a JSON file a participant loaded — so the menu, the instance
+// config or a JSON file a creator loaded — so the menu, the instance
 // groups and the 1-9 shortcuts all share one alphabetical order.
 const initialClasses = sortClassesByName(
-  storedClasses && storedClasses.length > 0 ? storedClasses : classesConfig,
+  storedClasses && storedClasses.length > 0 ? storedClasses : defaultClasses,
 )
 const storedLang = loadLang()
 const browserLang = typeof navigator !== 'undefined' && navigator.language?.startsWith('de') ? 'de' : 'en'
+// The study is run in German; the creator follows the browser. A language the
+// user picked themselves always wins over both.
+const defaultLang = isCreatorVariant ? browserLang : 'de'
 const storedTheme = loadTheme()
 const initialTheme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : 'system'
 applyTheme(initialTheme)
@@ -58,11 +66,10 @@ const initialState = {
   // stored by an older build doesn't silently log the participant out.
   participantId: initialSession?.participantId ?? initialSession?.studentId ?? null,
   treatment: initialSession?.treatment ?? null,
-  lang: storedLang === 'de' || storedLang === 'en' ? storedLang : browserLang,
+  lang: storedLang === 'de' || storedLang === 'en' ? storedLang : defaultLang,
   theme: initialTheme,
-  // Never persisted and never read from storage at init. The Creator variant
-  // is always unlocked; the study variant always starts locked on a fresh
-  // page load, by design (see study.json's creatorPassword).
+  // Never persisted. The Creator variant is always unlocked; the study variant
+  // has no way to edit classes at all.
   creatorMode: isCreatorVariant,
   classes: initialClasses,
   activeClassId: initialClasses[0]?.id ?? null,
@@ -122,7 +129,7 @@ function reducer(state, action) {
     }
     case 'RESET_CLASSES': {
       clearClasses()
-      const classes = sortClassesByName(classesConfig)
+      const classes = sortClassesByName(defaultClasses)
       const activeClassId = classes[0]?.id ?? null
       return { ...state, classes, activeClassId }
     }
@@ -142,10 +149,6 @@ function reducer(state, action) {
         state.activeClassId === action.classId ? (classes[0]?.id ?? null) : state.activeClassId
       return { ...state, classes, activeClassId }
     }
-    case 'ENTER_CREATOR_MODE':
-      return { ...state, creatorMode: true }
-    case 'EXIT_CREATOR_MODE':
-      return { ...state, creatorMode: false }
     case 'ADD_IMAGES': {
       const images = [...state.images, ...action.images]
       const shapesByImage = { ...state.shapesByImage }
@@ -299,8 +302,6 @@ export function AppProvider({ children }) {
     [],
   )
   const deleteClass = useCallback((classId) => dispatch({ type: 'DELETE_CLASS', classId }), [])
-  const enterCreatorMode = useCallback(() => dispatch({ type: 'ENTER_CREATOR_MODE' }), [])
-  const exitCreatorMode = useCallback(() => dispatch({ type: 'EXIT_CREATOR_MODE' }), [])
 
   const lang = state.lang
   const t = useCallback((key, vars) => translate(lang, key, vars), [lang])
@@ -329,8 +330,6 @@ export function AppProvider({ children }) {
       addClass,
       renameClass,
       deleteClass,
-      enterCreatorMode,
-      exitCreatorMode,
     }),
     [
       state,
@@ -355,8 +354,6 @@ export function AppProvider({ children }) {
       addClass,
       renameClass,
       deleteClass,
-      enterCreatorMode,
-      exitCreatorMode,
     ],
   )
 
