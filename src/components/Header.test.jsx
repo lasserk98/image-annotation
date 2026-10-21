@@ -88,4 +88,28 @@ describe('Header export in the creator variant', () => {
     expect(screen.queryByText('Participant ID')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Log out' })).not.toBeInTheDocument()
   })
+
+  it('opens the instructions from the header button', () => {
+    renderHeader({ annotated: true })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Usage & shortcuts' }))
+
+    expect(screen.getByText('How to annotate')).toBeInTheDocument()
+  })
+
+  it('switches the interface language', () => {
+    renderHeader({ annotated: true })
+
+    fireEvent.click(screen.getByRole('button', { name: 'DE' }))
+
+    expect(screen.getByRole('button', { name: '⬇ Exportieren' })).toBeInTheDocument()
+  })
+
+  it('cycles the theme from the header button', () => {
+    renderHeader({ annotated: true })
+
+    fireEvent.click(screen.getByRole('button', { name: /^Theme:/ }))
+
+    expect(document.documentElement.dataset.theme).toBe('light')
+  })
 })

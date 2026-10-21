@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { buildExportData, toJsonFilename } from './export'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { buildExportData, downloadJSON, toJsonFilename } from './export'
 
 const IMAGES = [{ id: 'img-1', name: 'a/scan.png', url: 'blob:x', width: 200, height: 100 }]
 const CLASSES = [{ id: 'c1', name: 'Nerve' }]
@@ -79,5 +79,43 @@ describe('toJsonFilename', () => {
 
   it('uses the fallback for a blank name', () => {
     expect(toJsonFilename('   ', 'annotations')).toBe('annotations.json')
+  })
+})
+
+describe('downloadJSON', () => {
+  const originalCreate = URL.createObjectURL
+  const originalRevoke = URL.revokeObjectURL
+
+  beforeEach(() => {
+    // jsdom has no object-URL support, so both are stubbed for the test.
+    URL.createObjectURL = vi.fn(() => 'blob:fake')
+    URL.revokeObjectURL = vi.fn()
+  })
+
+  afterEach(() => {
+    URL.createObjectURL = originalCreate
+    URL.revokeObjectURL = originalRevoke
+    vi.restoreAllMocks()
+  })
+
+  it('downloads pretty-printed JSON under the given file name', async () => {
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    downloadJSON('results.json', { a: 1 })
+
+    expect(click).toHaveBeenCalledTimes(1)
+    expect(click.mock.contexts[0].download).toBe('results.json')
+    const blob = URL.createObjectURL.mock.calls[0][0]
+    expect(await blob.text()).toBe(JSON.stringify({ a: 1 }, null, 2))
+    expect(blob.type).toBe('application/json')
+  })
+
+  it('releases the object URL and leaves no link in the page', () => {
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    downloadJSON('results.json', {})
+
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:fake')
+    expect(document.querySelector('a[download]')).toBeNull()
   })
 })
