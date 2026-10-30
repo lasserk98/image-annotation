@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import study from '../config/study.json'
+import { CONSENT_TEXT } from '../survey/consentText'
 import { seedSession } from '../test/surveyHelpers'
 
 // The login screen is the study entry gate: it only exists in the study
@@ -41,7 +42,7 @@ describe('study entry gate', () => {
 
     enter(screen, { id: 'P-1234', password: study.studyPassword })
 
-    expect(screen.getByRole('heading', { name: 'Einwilligungserklärung' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: CONSENT_TEXT.title })).toBeInTheDocument()
     expect(screen.queryByLabelText('Study password')).not.toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('seg-annotate:session')).participantId).toBe('P-1234')
   })
@@ -111,7 +112,7 @@ describe('post entry gate', () => {
     enter(screen, { id: 'P-1234', password: study.postPassword })
 
     expect(screen.getByRole('heading', { name: 'Postinterventioneller Fragebogen' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Einwilligungserklärung' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: CONSENT_TEXT.title })).not.toBeInTheDocument()
     expect(JSON.parse(localStorage.getItem('seg-annotate:post-session')).participantId).toBe('P-1234')
     expect(localStorage.getItem('seg-annotate:session')).toBeNull()
   })

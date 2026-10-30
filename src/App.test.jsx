@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import study from './config/study.json'
+import { CONSENT_TEXT } from './survey/consentText'
 import { POST_SURVEY } from './survey/postSurvey'
 import { PRE_SURVEY } from './survey/preSurvey'
 import { answerPages, seedSession } from './test/surveyHelpers'
@@ -105,7 +106,7 @@ describe('App', () => {
 
       const screen = await renderApp('study')
 
-      expect(screen.getByRole('heading', { name: 'Einwilligungserklärung' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: CONSENT_TEXT.title })).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: '⬇ Export' })).not.toBeInTheDocument()
     })
 
@@ -132,7 +133,8 @@ describe('App', () => {
       rtl.fireEvent.change(screen.getByLabelText('Study password'), { target: { value: study.studyPassword } })
       rtl.fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
 
-      rtl.fireEvent.click(screen.getByRole('checkbox', { name: /Ich habe die obigen Informationen gelesen/ }))
+      rtl.fireEvent.click(screen.getByRole('checkbox', { name: /freiwillig an der Studie teilzunehmen/ }))
+      rtl.fireEvent.click(screen.getByRole('checkbox', { name: /Verarbeitung meiner personenbezogenen Daten/ }))
       rtl.fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
 
       expect(screen.getByText('Part 1 of 3')).toBeInTheDocument()

@@ -26,6 +26,9 @@ function State() {
   )
 }
 
+const participationBox = () => screen.getByRole('checkbox', { name: /freiwillig an der Studie teilzunehmen/ })
+const dataProtectionBox = () => screen.getByRole('checkbox', { name: /Verarbeitung meiner personenbezogenen Daten/ })
+
 function renderConsent() {
   render(
     <AppProvider>
@@ -44,34 +47,70 @@ describe('ConsentScreen', () => {
     delete document.documentElement.dataset.theme
   })
 
-  it('shows the German consent text, marked as a placeholder for now', () => {
+  it('shows the study title, the information and the Datenschutz section, marked as a placeholder for now', () => {
     renderConsent()
 
-    expect(screen.getByRole('heading', { name: 'Einwilligungserklärung' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Studie zur KI-gestützten Annotation von Lehrvideos in der Cochleaimplantation' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Die Teilnahme an der Studie ist freiwillig/)).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Datenschutz und Verarbeitung personenbezogener Daten' }),
+    ).toBeInTheDocument()
     expect(screen.getByText(/PLATZHALTER/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Einverständniserklärung' })).toBeInTheDocument()
   })
 
-  it('keeps Continue disabled until the agreement is ticked', () => {
+  it('keeps Continue disabled until both agreements are ticked', () => {
     renderConsent()
-
     expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
 
-    fireEvent.click(screen.getByRole('checkbox', { name: /Ich habe die obigen Informationen gelesen/ }))
+    fireEvent.click(participationBox())
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
 
+    fireEvent.click(dataProtectionBox())
     expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled()
   })
 
-  it('records consent when continuing', () => {
+  it('keeps Continue disabled when only the data protection agreement is ticked', () => {
+    renderConsent()
+
+    fireEvent.click(dataProtectionBox())
+
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
+  })
+
+  it('disables Continue again when an agreement is unticked', () => {
+    renderConsent()
+    fireEvent.click(participationBox())
+    fireEvent.click(dataProtectionBox())
+
+    fireEvent.click(participationBox())
+
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
+  })
+
+  it('records consent when continuing with both agreements', () => {
     renderConsent()
     expect(screen.getByTestId('state')).toHaveTextContent('P-1|pending')
 
-    fireEvent.click(screen.getByRole('checkbox', { name: /Ich habe die obigen Informationen gelesen/ }))
+    fireEvent.click(participationBox())
+    fireEvent.click(dataProtectionBox())
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
 
     expect(screen.getByTestId('state')).toHaveTextContent('P-1|consented')
   })
 
-  it('does not record consent without the agreement', () => {
+  it('does not record consent with only one agreement', () => {
+    renderConsent()
+
+    fireEvent.click(participationBox())
+    fireEvent.submit(screen.getByRole('button', { name: 'Continue' }).closest('form'))
+
+    expect(screen.getByTestId('state')).toHaveTextContent('P-1|pending')
+  })
+
+  it('does not record consent without any agreement', () => {
     renderConsent()
 
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
@@ -93,7 +132,7 @@ describe('ConsentScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'DE' }))
 
     expect(screen.getByRole('button', { name: 'Weiter' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Einwilligungserklärung' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Einverständniserklärung' })).toBeInTheDocument()
   })
 
   it('lets the participant cycle the theme', () => {

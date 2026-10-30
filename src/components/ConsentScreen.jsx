@@ -3,16 +3,25 @@ import { useApp } from '../context/AppContext'
 import { CONSENT_TEXT } from '../survey/consentText'
 import ScreenControls from './ScreenControls'
 
-// Shown after login and before the survey. The participant has to tick the
+function renderParagraph(paragraph) {
+  return (
+    <p key={paragraph} className="text-sm leading-relaxed mb-3" style={{ color: 'var(--text)' }}>
+      {paragraph}
+    </p>
+  )
+}
+
+// Shown after login and before the survey. The participant has to tick every
 // agreement before they can continue; the time they did is stored with the
 // survey answers.
 export default function ConsentScreen() {
   const { acceptConsent, logout, t } = useApp()
-  const [agreed, setAgreed] = useState(false)
+  const [agreed, setAgreed] = useState({})
+  const isAllAgreed = CONSENT_TEXT.agreements.every(({ id }) => agreed[id])
 
   function handleSubmit(e) {
     e.preventDefault()
-    if (agreed) acceptConsent()
+    if (isAllAgreed) acceptConsent()
   }
 
   return (
@@ -32,27 +41,35 @@ export default function ConsentScreen() {
         <h1 className="text-xl font-semibold mb-4" style={{ color: 'var(--text)' }}>
           {CONSENT_TEXT.title}
         </h1>
-        {CONSENT_TEXT.paragraphs.map((paragraph) => (
-          <p key={paragraph} className="text-sm leading-relaxed mb-3" style={{ color: 'var(--text)' }}>
-            {paragraph}
-          </p>
-        ))}
+        {CONSENT_TEXT.paragraphs.map(renderParagraph)}
 
-        <label className="flex items-start gap-2 text-sm mt-5" style={{ color: 'var(--text)' }}>
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5"
-          />
-          <span>{CONSENT_TEXT.agreement}</span>
-        </label>
+        <h2 className="text-base font-semibold mt-5 mb-2" style={{ color: 'var(--text)' }}>
+          {CONSENT_TEXT.dataProtection.heading}
+        </h2>
+        {CONSENT_TEXT.dataProtection.paragraphs.map(renderParagraph)}
+
+        <h2 className="text-base font-semibold mt-5 mb-2" style={{ color: 'var(--text)' }}>
+          {CONSENT_TEXT.declaration.heading}
+        </h2>
+        {renderParagraph(CONSENT_TEXT.declaration.intro)}
+
+        {CONSENT_TEXT.agreements.map(({ id, label }) => (
+          <label key={id} className="flex items-start gap-2 text-sm mt-3" style={{ color: 'var(--text)' }}>
+            <input
+              type="checkbox"
+              checked={Boolean(agreed[id])}
+              onChange={(e) => setAgreed((prev) => ({ ...prev, [id]: e.target.checked }))}
+              className="mt-0.5"
+            />
+            <span>{label}</span>
+          </label>
+        ))}
 
         <div className="flex gap-2 justify-between mt-6">
           <button type="button" onClick={logout} className="toolbar-btn">
             {t('header.logout')}
           </button>
-          <button type="submit" disabled={!agreed} className="toolbar-btn-primary">
+          <button type="submit" disabled={!isAllAgreed} className="toolbar-btn-primary">
             {t('consent.continue')}
           </button>
         </div>
