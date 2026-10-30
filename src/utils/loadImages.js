@@ -1,6 +1,5 @@
+import { expandZips, IMAGE_PATTERN } from './extractZip'
 import { uid } from './id'
-
-const ACCEPTED = /\.(png|jpe?g|webp|bmp|gif)$/i
 
 function loadOneImage(file) {
   return new Promise((resolve, reject) => {
@@ -31,12 +30,14 @@ function loadOneImage(file) {
 // Reads local image files entirely client-side (object URLs backed by
 // in-memory Blobs) — nothing here ever touches the network. Accepts anything
 // list-like: a plain <input multiple> FileList, or a flattened folder walk —
-// so a folder is handled exactly like a set of individually-picked files.
+// so a folder is handled exactly like a set of individually-picked files. A
+// .zip is expanded first and then treated like a dropped folder; an
+// unreadable zip rejects with a ZipError.
 // Promise.allSettled (rather than Promise.all) means one unreadable file
 // among many — likely once folders can be dropped wholesale — doesn't
 // discard every other image in the batch.
 export async function filesToImages(fileList) {
-  const files = Array.from(fileList).filter((f) => ACCEPTED.test(f.name))
+  const files = (await expandZips(fileList)).filter((f) => IMAGE_PATTERN.test(f.name))
   const settled = await Promise.allSettled(files.map(loadOneImage))
   return settled.filter((r) => r.status === 'fulfilled').map((r) => r.value)
 }

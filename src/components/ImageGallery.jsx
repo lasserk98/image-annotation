@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { filesToImages } from '../utils/loadImages'
 import { collectFilesFromDataTransfer } from '../utils/collectFiles'
+import { ZipError } from '../utils/extractZip'
 
 export default function ImageGallery() {
   const { state, addImages, removeImage, selectImage, t } = useApp()
@@ -14,9 +15,14 @@ export default function ImageGallery() {
 
   async function handleFiles(fileList) {
     setLoading(true)
+    setError('')
     try {
       const imgs = await filesToImages(fileList)
       if (imgs.length > 0) addImages(imgs)
+    } catch (e) {
+      // Anything but a bad zip is left to the caller (the drop handler).
+      if (!(e instanceof ZipError)) throw e
+      setError(t('imageGallery.zipError'))
     } finally {
       setLoading(false)
     }
@@ -28,7 +34,11 @@ export default function ImageGallery() {
         <span className="panel-title">{t('imageGallery.heading')}</span>
         <span className="count-badge">{images.length}</span>
         <span className="flex-1" />
-        <button onClick={() => inputRef.current?.click()} className="link-btn">
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="link-btn"
+          title={t('imageGallery.addTitle')}
+        >
           {t('imageGallery.add')}
         </button>
         <button
@@ -41,10 +51,13 @@ export default function ImageGallery() {
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.zip,application/zip"
           multiple
           hidden
-          onChange={(e) => e.target.files && handleFiles(e.target.files)}
+          onChange={(e) => {
+            if (e.target.files?.length) handleFiles(e.target.files)
+            e.target.value = ''
+          }}
         />
         <input
           ref={folderInputRef}
