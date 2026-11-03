@@ -102,7 +102,7 @@ describe('Header in a study phase', () => {
     expect(filename).toBe('P-42_phase1.json')
     expect(payload.participantId).toBe('P-42')
     expect(payload.phase).toBe('phase1')
-    expect(payload.schemaVersion).toBe(5)
+    expect(payload.schemaVersion).toBe(6)
   })
 
   it('puts the survey answers, consent time and shapes into that file', async () => {

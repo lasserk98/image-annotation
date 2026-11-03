@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { uid } from '../utils/id'
+import { createShape } from '../utils/shapes'
 import { clamp, distance, polygonCentroid } from '../utils/geometry'
 import Toolbar from './Toolbar'
 
@@ -34,6 +34,7 @@ export default function AnnotationCanvas() {
   const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 })
   const [mode, setMode] = useState('select') // 'select' | 'draw'
   const [draftPoints, setDraftPoints] = useState([])
+  const [draftStartedAt, setDraftStartedAt] = useState(null) // when the first point of the draft was placed
   const [cursor, setCursor] = useState(null)
   const [dragPoint, setDragPoint] = useState(null) // { index, x, y } live override while dragging a vertex
   const [panning, setPanning] = useState(false)
@@ -58,7 +59,7 @@ export default function AnnotationCanvas() {
   // Reset drawing/selection state and re-fit whenever the active image changes.
   useEffect(() => {
     setMode('select')
-    setDraftPoints([])
+    resetDraft()
     setCursor(null)
     fit()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -135,27 +136,37 @@ export default function AnnotationCanvas() {
     setShapes(currentImageId, next)
   }
 
+  function resetDraft() {
+    setDraftPoints([])
+    setDraftStartedAt(null)
+  }
+
   function startDraw() {
     // A shape's classId comes straight from activeClassId (see finishDraw
     // below) — with no class selected (now reachable since the default
     // class list is empty) that would silently commit a null-classId shape.
     if (!activeClassId) return
     setMode('draw')
-    setDraftPoints([])
+    resetDraft()
     selectShape(null)
   }
 
   function cancelDraw() {
     setMode('select')
-    setDraftPoints([])
+    resetDraft()
   }
 
   function finishDraw() {
     if (draftPoints.length < 3) return
-    const shape = { id: uid('shape'), classId: activeClassId, points: draftPoints }
+    const shape = createShape({
+      classId: activeClassId,
+      points: draftPoints,
+      startedAt: draftStartedAt,
+      finishedAt: new Date().toISOString(),
+    })
     commitShapes([...shapes, shape])
     setMode('select')
-    setDraftPoints([])
+    resetDraft()
     selectShape(shape.id)
   }
 
@@ -185,6 +196,7 @@ export default function AnnotationCanvas() {
           return
         }
       }
+      if (draftPoints.length === 0) setDraftStartedAt(new Date().toISOString())
       setDraftPoints((pts) => [...pts, p])
       return
     }
@@ -299,7 +311,8 @@ export default function AnnotationCanvas() {
           deleteSelected()
         }
       } else if (e.key === 'Backspace' && mode === 'draw') {
-        setDraftPoints((pts) => pts.slice(0, -1))
+        if (draftPoints.length <= 1) resetDraft()
+        else setDraftPoints((pts) => pts.slice(0, -1))
       } else if ((e.key === 'n' || e.key === 'N') && mode === 'select') {
         startDraw()
       } else if (e.key >= '1' && e.key <= '9') {
@@ -323,7 +336,7 @@ export default function AnnotationCanvas() {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, selection, shapes, classes, draftPoints, images, currentImageId])
+  }, [mode, selection, shapes, classes, draftPoints, draftStartedAt, images, currentImageId])
 
   useEffect(() => {
     const onUndo = () => undo(currentImageId)

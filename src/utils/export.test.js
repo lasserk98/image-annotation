@@ -48,6 +48,32 @@ describe('buildExportData', () => {
     })
   })
 
+  it('exports when each shape was started and finished', () => {
+    const timed = {
+      'img-1': [
+        {
+          ...SHAPES['img-1'][0],
+          startedAt: '2026-11-03T10:00:00.000Z',
+          finishedAt: '2026-11-03T10:00:12.500Z',
+        },
+      ],
+    }
+
+    const data = buildExportData({ images: IMAGES, shapesByImage: timed, classes: CLASSES })
+
+    expect(data.images[0].shapes[0]).toMatchObject({
+      startedAt: '2026-11-03T10:00:00.000Z',
+      finishedAt: '2026-11-03T10:00:12.500Z',
+    })
+  })
+
+  it('exports null times for a shape that has none', () => {
+    const data = buildExportData({ images: IMAGES, shapesByImage: SHAPES, classes: CLASSES })
+
+    expect(data.images[0].shapes[0].startedAt).toBeNull()
+    expect(data.images[0].shapes[0].finishedAt).toBeNull()
+  })
+
   it('records a null participant and treatment when none is given', () => {
     const data = buildExportData({ images: IMAGES, shapesByImage: SHAPES, classes: CLASSES })
 
@@ -108,10 +134,10 @@ describe('buildExportData with a survey', () => {
     expect(data).not.toHaveProperty('survey')
   })
 
-  it('is schema version 5', () => {
+  it('is schema version 6', () => {
     const data = buildExportData({ images: IMAGES, shapesByImage: SHAPES, classes: CLASSES })
 
-    expect(data.schemaVersion).toBe(5)
+    expect(data.schemaVersion).toBe(6)
   })
 
   it('records which phase the file comes from, so the three files of a participant stay apart', () => {

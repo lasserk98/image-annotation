@@ -273,7 +273,7 @@ clear.
       macOS, then check the uploaded files load in your analysis.
 
 **Your analysis** now receives three files per participant (`<id>_phase1.json`,
-`_phase2.json`, `_phase3.json`), each with `schemaVersion` 5 and a `phase` field,
+`_phase2.json`, `_phase3.json`), each with `schemaVersion` 6 and a `phase` field,
 and — unlike before — phase 2 and 3 files also contain the annotated image. The
 old `<id>.json` and `<id>_post.json` no longer exist.
 
@@ -305,7 +305,7 @@ format of the (separate, private) analysis step.
   "treatment": null,
   "exportedAt": "2026-09-01T12:00:00.000Z",
   "tool": "image-annotation",
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "survey": {
     "version": "pre-1",
     "consentAcceptedAt": "2026-09-01T11:50:00.000Z",
@@ -324,7 +324,9 @@ format of the (separate, private) analysis step.
           "classId": "class-1",
           "className": "Class A",
           "points": [[120.5, 300.1], [180.2, 305.9], [150, 260]],
-          "area": 1713.44
+          "area": 1713.44,
+          "startedAt": "2026-09-01T11:53:02.114Z",
+          "finishedAt": "2026-09-01T11:54:40.870Z"
         }
       ]
     }
@@ -350,6 +352,12 @@ of the consent text that was accepted. Phase 2's answers are
 numbers keyed `post.*`, `ai.*` and `conv.*`. The `images` entry of each file
 holds that phase's annotated image.
 
+> **`schemaVersion` 6** added `startedAt` and `finishedAt` to every shape: when
+> its first point was placed and when it was closed (click on the first point,
+> or Enter), as ISO timestamps (UTC) from the participant's computer clock. A
+> pause in between counts; editing the shape later (moving or adding a point,
+> changing the class) does not change them. `null` if not recorded.
+>
 > **`schemaVersion` 5** added `survey.consentVersion`, the version of the consent
 > text the participant accepted (`null` where there is no consent step, or where
 > consent was given before versions were recorded). Changing the wording does

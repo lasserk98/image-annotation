@@ -15,6 +15,8 @@ import { polygonArea } from './geometry'
 // schemaVersion 5 added `survey.consentVersion`, the version of the consent
 // text that was accepted (null where there is no consent step, or where the
 // consent was given before versions were recorded).
+// schemaVersion 6 added `startedAt` and `finishedAt` to every shape: when its
+// first point was placed and when it was closed (null if not recorded).
 export function buildExportData({
   participantId = null,
   phase = null,
@@ -32,7 +34,7 @@ export function buildExportData({
     treatment: treatment || null,
     exportedAt: new Date().toISOString(),
     tool: 'image-annotation',
-    schemaVersion: 5,
+    schemaVersion: 6,
     ...(survey && { survey: copySurvey(survey) }),
     images: images.map((img) => {
       const shapes = shapesByImage[img.id] || []
@@ -46,6 +48,8 @@ export function buildExportData({
           className: classById[shape.classId]?.name ?? shape.classId,
           points: shape.points.map((p) => [round(p.x), round(p.y)]),
           area: Math.abs(polygonArea(shape.points)),
+          startedAt: shape.startedAt ?? null,
+          finishedAt: shape.finishedAt ?? null,
         })),
       }
     }),
