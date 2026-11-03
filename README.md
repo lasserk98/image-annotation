@@ -198,8 +198,8 @@ single locale so every participant gets the same order — and therefore the sam
   "instructions": { "en": "Shown in the usage (ⓘ) modal.", "de": "…" },
   "treatments": [],
   "phase1Password": "…",
-  "phase2Password": "changeme-phase2",
-  "phase3Password": "changeme-phase3"
+  "phase2Password": "…",
+  "phase3Password": "…"
 }
 ```
 
@@ -210,9 +210,8 @@ their export). You can also assign a treatment via the link, e.g.
 `…/phase1/?id=P-1&treatment=A` — this skips the picker and locks the
 treatment for that link, in every phase. Each phase has its own password
 (`phase1Password` … `phase3Password`), which the participant enters on that
-page — see above for what that does and does not protect against. **Change
-`phase2Password` and `phase3Password` from their `changeme-…` values before the
-study.**
+page — see above for what that does and does not protect against. The three
+must differ.
 
 ### Running the study
 
@@ -261,8 +260,8 @@ and 2 (they are one sitting) and one weeks later for phase 3 keeps the order
 clear.
 
 **Before each send-out:**
-- [ ] `phase2Password` / `phase3Password` changed from `changeme-…`, and the
-      same values put in the emails.
+- [ ] The three study passwords (`phase1Password` … `phase3Password`) put in
+      the emails of their phase.
 - [ ] The image to expect for phase 3 set in `src/phases.js` before phase 3
       goes out.
 - [ ] The data protection officers have seen the consent text, including what it
