@@ -5,9 +5,11 @@ import { isCreatorVariant } from '../variant'
 
 // Keys named on the keyboard (N, Esc, Ctrl+Z) are shown literally; mouse
 // gestures use `keyLabelKey` so the chip is translated like its description.
+// The 1–9 class keys exist only in the Creator: a study phase shows no class
+// numbers, so it has no such shortcut.
 const SHORTCUT_KEYS = [
   { key: 'N', labelKey: 'usage.shortcut.newShape' },
-  { key: '1–9', labelKey: 'usage.shortcut.classNumber' },
+  ...(isCreatorVariant ? [{ key: '1–9', labelKey: 'usage.shortcut.classNumber' }] : []),
   { key: 'Enter', labelKey: 'usage.shortcut.enter' },
   { key: 'Esc', labelKey: 'usage.shortcut.esc' },
   { key: 'Delete', labelKey: 'usage.shortcut.delete' },

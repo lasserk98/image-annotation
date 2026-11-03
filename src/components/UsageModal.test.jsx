@@ -40,6 +40,12 @@ describe('UsageModal', () => {
       expect(screen.queryByText('Study instructions')).not.toBeInTheDocument()
     })
 
+    it('lists the 1–9 class shortcut', async () => {
+      const screen = await renderModal('creator')
+
+      expect(screen.getByText('1–9')).toBeInTheDocument()
+    })
+
     it('does not tell the creator to unlock Creator Mode', async () => {
       const screen = await renderModal('creator')
 
@@ -62,6 +68,12 @@ describe('UsageModal', () => {
       expect(screen.getByText('Study instructions')).toBeInTheDocument()
       expect(screen.getByText('How to annotate')).toBeInTheDocument()
       expect(screen.getByText('Keyboard shortcuts')).toBeInTheDocument()
+    })
+
+    it('does not list a class number shortcut, as the classes carry no numbers', async () => {
+      const screen = await renderModal('phase1')
+
+      expect(screen.queryByText('1–9')).not.toBeInTheDocument()
     })
 
     it('translates the shortcut key labels, not only their descriptions', async () => {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { createShape } from '../utils/shapes'
+import { isCreatorVariant } from '../variant'
 import { clamp, distance, polygonCentroid } from '../utils/geometry'
 import Toolbar from './Toolbar'
 
@@ -315,7 +316,7 @@ export default function AnnotationCanvas() {
         else setDraftPoints((pts) => pts.slice(0, -1))
       } else if ((e.key === 'n' || e.key === 'N') && mode === 'select') {
         startDraw()
-      } else if (e.key >= '1' && e.key <= '9') {
+      } else if (isCreatorVariant && e.key >= '1' && e.key <= '9') {
         const cls = classes[Number(e.key) - 1]
         if (cls) {
           setActiveClass(cls.id)

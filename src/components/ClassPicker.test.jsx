@@ -44,6 +44,13 @@ describe('ClassPicker in a study phase', () => {
     expect(screen.getByText('langer Ambossschenkel')).toBeInTheDocument()
   })
 
+  it('shows the class names without any numbers next to them', async () => {
+    const screen = await renderInAnnotationMode()
+
+    expect(screen.getByText('Stapes')).toBeInTheDocument()
+    expect(document.querySelector('.kbd-hint')).toBeNull()
+  })
+
   it('offers no way to load, add, clear or export classes', async () => {
     const screen = await renderInAnnotationMode()
 

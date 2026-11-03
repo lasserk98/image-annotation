@@ -39,8 +39,9 @@ export default function ClassPicker() {
     return counts
   }, [shapes])
 
-  // Keep the original index alongside each entry: the 1–9 keyboard shortcuts
-  // address the unfiltered list, so the hint must not renumber while filtering.
+  // Keep the original index alongside each entry: the Creator's 1–9 keyboard
+  // shortcuts address the unfiltered list, so the hint must not renumber
+  // while filtering. A study phase shows no numbers and has no such shortcuts.
   const visible = useMemo(() => {
     const indexed = classes.map((cls, index) => ({ cls, index }))
     const q = query.trim().toLowerCase()
@@ -275,7 +276,7 @@ export default function ClassPicker() {
                     </span>
                   )}
                   {count > 0 && <span className="count-badge">{count}</span>}
-                  {index < 9 && <span className="kbd-hint">{index + 1}</span>}
+                  {isCreatorVariant && index < 9 && <span className="kbd-hint">{index + 1}</span>}
                   {creatorMode && (
                     <button
                       onClick={(e) => {
