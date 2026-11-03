@@ -5,7 +5,7 @@
   },
   "instructions": {
     "en": "Draw a polygon around each structure you can identify, then assign it the correct class. Click to place points, click the first point again (or press Enter) to close the shape. Drag points to refine a shape after closing it.",
-    "de": "Zeichne ein Polygon um jede erkennbare Struktur und weise ihr die richtige Klasse zu. Klicke, um Punkte zu setzen, und klicke erneut auf den ersten Punkt (oder drücke Enter), um die Form zu schließen. Nach dem Schließen kannst du die Punkte durch Ziehen verfeinern."
+    "de": "Zeichnen Sie ein Polygon um jede erkennbare Struktur und weisen Sie ihr die richtige Klasse zu. Klicken Sie, um Punkte zu setzen, und klicken Sie erneut auf den ersten Punkt (oder drücken Sie Enter), um die Form zu schließen. Nach dem Schließen können Sie die Punkte durch Ziehen verfeinern."
   },
   "treatments": [],
   "phase1Password": "CI-study-2026",

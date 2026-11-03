@@ -28,7 +28,7 @@ const SHORTCUT_KEYS = [
 const STEP_KEYS = [
   isCreatorVariant ? 'usage.creator.step1' : 'usage.study.step1',
   'usage.step2',
-  'usage.step3',
+  isCreatorVariant ? 'usage.creator.step3' : 'usage.step3',
   'usage.step4',
   'usage.step5',
   'usage.step6',

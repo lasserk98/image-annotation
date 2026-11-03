@@ -68,6 +68,20 @@ describe('Header in a study phase', () => {
     vi.unstubAllEnvs()
   })
 
+  it('asks before the page is closed until the annotations are exported', async () => {
+    const { screen } = await renderStudyHeader()
+    const tryToLeave = () => {
+      const event = new Event('beforeunload', { cancelable: true })
+      window.dispatchEvent(event)
+      return event.defaultPrevented
+    }
+    expect(tryToLeave()).toBe(true)
+
+    screen.getByRole('button', { name: '⬇ Export' }).click()
+
+    await vi.waitFor(() => expect(tryToLeave()).toBe(false))
+  })
+
   it('shows the phase and log-out, but never the participant ID', async () => {
     const { screen } = await renderStudyHeader()
 

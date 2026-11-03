@@ -40,6 +40,12 @@ describe('UsageModal', () => {
       expect(screen.queryByText('Study instructions')).not.toBeInTheDocument()
     })
 
+    it('tells the creator to pick a class or press a number key', async () => {
+      const screen = await renderModal('creator')
+
+      expect(screen.getByText(/press a number key/)).toBeInTheDocument()
+    })
+
     it('lists the 1–9 class shortcut', async () => {
       const screen = await renderModal('creator')
 
@@ -68,6 +74,12 @@ describe('UsageModal', () => {
       expect(screen.getByText('Study instructions')).toBeInTheDocument()
       expect(screen.getByText('How to annotate')).toBeInTheDocument()
       expect(screen.getByText('Keyboard shortcuts')).toBeInTheDocument()
+    })
+
+    it('tells participants only to pick a class in the panel, not to press a number', async () => {
+      const screen = await renderModal('phase1')
+
+      expect(screen.getByText(/Pick a class in the left panel/)).not.toHaveTextContent(/number key/)
     })
 
     it('does not list a class number shortcut, as the classes carry no numbers', async () => {

@@ -40,23 +40,40 @@ describe('ExportDoneModal', () => {
     renderModal('de')
 
     expect(screen.getByRole('dialog')).toHaveTextContent('_phase1.json')
-    expect(screen.getByRole('dialog')).toHaveTextContent(/lade diese Datei/i)
+    expect(screen.getByRole('dialog')).toHaveTextContent(/laden Sie diese Datei/i)
+  })
+
+  it('leads with the upload as the next step', () => {
+    renderModal('en')
+
+    expect(screen.getByRole('heading', { name: 'Next step: upload your file' })).toBeInTheDocument()
   })
 
   it.each([
-    ['phase1', /watch the video/i],
-    ['phase2', /Phase 2 is done/i],
-    ['phase3', /follow-up/i],
-  ])('tells the participant what comes next after %s', (phaseId, expected) => {
+    ['phase1', /upload.*watch the video.*Phase 2/is],
+    ['phase2', /upload.*done.*follow-up/is],
+    ['phase3', /upload.*done.*thank you/is],
+  ])('names the upload and then what comes next after %s', (phaseId, expected) => {
     renderModal('en', phaseId)
 
-    expect(screen.getByRole('dialog')).toHaveTextContent(expected)
+    expect(screen.getByTestId('next-step')).toHaveTextContent(expected)
   })
 
-  it('tells the participant what comes next in German too', () => {
-    renderModal('de', 'phase1')
+  it.each(['phase1', 'phase2', 'phase3'])('addresses the participant formally in German after %s', (phaseId) => {
+    renderModal('de', phaseId)
 
-    expect(screen.getByRole('dialog')).toHaveTextContent(/Video/)
+    const text = screen.getByRole('dialog').textContent
+    expect(screen.getByTestId('next-step')).toHaveTextContent(/hoch/)
+    expect(text).toMatch(/Sie|Ihre/)
+    expect(text).not.toMatch(/\b(du|dein\w*|dir)\b/i)
+  })
+
+  it('does not close when the dimmed background is clicked', () => {
+    const { onClose } = renderModal('en')
+
+    fireEvent.click(screen.getByRole('dialog'))
+
+    expect(onClose).not.toHaveBeenCalled()
   })
 
   it('closes with the button', () => {

@@ -6,7 +6,8 @@ import { useApp } from '../context/AppContext'
 // upload — by how its name ends, never with the participant ID in front of it,
 // since the ID is not shown to participants. It names no upload location: the
 // repo is public, and the folder is given in the participant's invitation
-// email. `phaseId` picks what the participant is told to do next.
+// email. `phaseId` picks what the participant is told to do next. Only the
+// button or Escape closes it, so the reminder cannot vanish by a stray click.
 export default function ExportDoneModal({ fileEnding, phaseId, onClose }) {
   const { t } = useApp()
 
@@ -27,10 +28,8 @@ export default function ExportDoneModal({ fileEnding, phaseId, onClose }) {
       aria-labelledby="export-done-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.4)' }}
-      onClick={onClose}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md rounded-2xl p-6"
         style={{
           background: 'var(--surface)',
@@ -55,7 +54,9 @@ export default function ExportDoneModal({ fileEnding, phaseId, onClose }) {
           {t('exportDone.upload')}
         </p>
         {phaseId && (
-          <p className="text-sm leading-relaxed mb-5 font-semibold">{t(`exportDone.next.${phaseId}`)}</p>
+          <p data-testid="next-step" className="text-sm leading-relaxed mb-5 font-semibold">
+            {t(`exportDone.next.${phaseId}`)}
+          </p>
         )}
         <div className="flex justify-end">
           <button onClick={onClose} className="toolbar-btn-primary" autoFocus>

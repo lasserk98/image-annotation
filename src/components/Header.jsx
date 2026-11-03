@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useUnexportedWarning } from '../hooks/useUnexportedWarning'
 import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
 import { ACTIVE_SURVEY } from '../survey/activeSurvey'
@@ -20,6 +21,7 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
   const [showExportWarning, setShowExportWarning] = useState(false)
   const [showExportNameModal, setShowExportNameModal] = useState(false)
   const [showExportDone, setShowExportDone] = useState(false)
+  const markExported = useUnexportedWarning(shapesByImage)
 
   // Header is remounted fresh each time Workspace swaps in for LoginScreen,
   // so this only fires once per actual login — not on every reload of a
@@ -50,6 +52,7 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
     const phase = ACTIVE_PHASE?.id ?? null
     const data = buildExportData({ participantId, phase, treatment, images, shapesByImage, classes, survey })
     downloadJSON(filename, data)
+    markExported()
   }
 
   // Participants get one file per phase, named after their ID and the phase

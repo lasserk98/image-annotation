@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { useApp } from '../context/AppContext'
+import { useState } from 'react'
 import Header from './Header'
 import ImageGallery from './ImageGallery'
 import ClassPicker from './ClassPicker'
@@ -7,20 +6,8 @@ import InstanceList from './InstanceList'
 import AnnotationCanvas from './AnnotationCanvas'
 
 export default function Workspace() {
-  const { state } = useApp()
-  const hasAnnotations = Object.values(state.shapesByImage).some((s) => s.length > 0)
   const [leftOpen, setLeftOpen] = useState(true)
   const [rightOpen, setRightOpen] = useState(true)
-
-  useEffect(() => {
-    function handleBeforeUnload(e) {
-      if (!hasAnnotations) return
-      e.preventDefault()
-      e.returnValue = ''
-    }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [hasAnnotations])
 
   return (
     <div className="h-full flex flex-col overflow-hidden" style={{ background: 'var(--bg)' }}>
