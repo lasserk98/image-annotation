@@ -8,52 +8,52 @@ async function loadStorage(variant) {
   return import('./storage')
 }
 
-describe('session storage per variant', () => {
+const KEYS = {
+  phase1: 'seg-annotate:phase1-session',
+  phase2: 'seg-annotate:phase2-session',
+  phase3: 'seg-annotate:phase3-session',
+}
+
+describe('session storage per phase', () => {
   beforeEach(() => localStorage.clear())
   afterEach(() => {
     localStorage.clear()
     vi.unstubAllEnvs()
   })
 
-  it('keeps the study session under its original key', async () => {
-    const { saveSession } = await loadStorage('study')
+  it.each(Object.entries(KEYS))('keeps the %s session under its own key', async (phase, key) => {
+    const { saveSession } = await loadStorage(phase)
 
     saveSession({ participantId: 'P-1' })
 
-    expect(JSON.parse(localStorage.getItem('seg-annotate:session'))).toEqual({ participantId: 'P-1' })
+    expect(JSON.parse(localStorage.getItem(key))).toEqual({ participantId: 'P-1' })
+    const others = Object.values(KEYS).filter((other) => other !== key)
+    expect(others.every((other) => localStorage.getItem(other) === null)).toBe(true)
   })
 
-  it('keeps the post session under its own key', async () => {
-    const { saveSession } = await loadStorage('post')
-
-    saveSession({ participantId: 'P-1' })
-
-    expect(JSON.parse(localStorage.getItem('seg-annotate:post-session'))).toEqual({ participantId: 'P-1' })
-    expect(localStorage.getItem('seg-annotate:session')).toBeNull()
-  })
-
-  it('does not let the post variant see a study session', async () => {
-    localStorage.setItem('seg-annotate:session', JSON.stringify({ participantId: 'P-STUDY' }))
-    const { loadSession } = await loadStorage('post')
+  it('does not let one phase see the session of another', async () => {
+    localStorage.setItem(KEYS.phase1, JSON.stringify({ participantId: 'P-ONE' }))
+    localStorage.setItem(KEYS.phase3, JSON.stringify({ participantId: 'P-THREE' }))
+    const { loadSession } = await loadStorage('phase2')
 
     expect(loadSession()).toBeNull()
   })
 
-  it('does not let the study variant see a post session', async () => {
-    localStorage.setItem('seg-annotate:post-session', JSON.stringify({ participantId: 'P-POST' }))
-    const { loadSession } = await loadStorage('study')
+  it('reads back what it saved', async () => {
+    localStorage.setItem(KEYS.phase2, JSON.stringify({ participantId: 'P-TWO' }))
+    const { loadSession } = await loadStorage('phase2')
 
-    expect(loadSession()).toBeNull()
+    expect(loadSession()).toEqual({ participantId: 'P-TWO' })
   })
 
   it('clears only its own session', async () => {
-    localStorage.setItem('seg-annotate:session', '{"participantId":"S"}')
-    localStorage.setItem('seg-annotate:post-session', '{"participantId":"P"}')
-    const { clearSession } = await loadStorage('post')
+    localStorage.setItem(KEYS.phase1, '{"participantId":"A"}')
+    localStorage.setItem(KEYS.phase2, '{"participantId":"B"}')
+    const { clearSession } = await loadStorage('phase2')
 
     clearSession()
 
-    expect(localStorage.getItem('seg-annotate:post-session')).toBeNull()
-    expect(localStorage.getItem('seg-annotate:session')).not.toBeNull()
+    expect(localStorage.getItem(KEYS.phase2)).toBeNull()
+    expect(localStorage.getItem(KEYS.phase1)).not.toBeNull()
   })
 })

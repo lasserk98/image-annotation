@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { PHASES } from '../phases'
 import { PRE_SURVEY } from '../survey/preSurvey'
+import { closeLink, openLink } from '../test/surveyHelpers'
 import { emptySurvey } from '../utils/survey'
 
-const SESSION_KEY = 'seg-annotate:session'
+const SESSION_KEY = PHASES.phase1.sessionKey
 
 // The variant and the provider's initial state are read at import time, so
 // each test loads a fresh module graph; Testing Library comes with it so it
@@ -11,9 +13,12 @@ let ctx
 let rtl
 let unmountCurrent = () => {}
 
-async function setup(variant = 'study') {
+// `linkId` is the participant ID in the link the page was opened from;
+// `linkExtra` any further query, e.g. '&treatment=A'.
+async function setup(variant = 'phase1', linkId = 'P-1', linkExtra = '') {
   vi.resetModules()
   vi.stubEnv('VITE_APP_VARIANT', variant)
+  openLink(linkId, linkExtra)
   rtl = await import('@testing-library/react')
   const { useEffect } = await import('react')
   const { AppProvider, useApp } = await import('./AppContext')
@@ -45,12 +50,13 @@ function answerEverything() {
   }
 }
 
-describe('survey state (study variant)', () => {
+describe('survey state (study phase)', () => {
   beforeEach(() => localStorage.clear())
 
   afterEach(() => {
     unmountCurrent()
     localStorage.clear()
+    closeLink()
     vi.unstubAllEnvs()
   })
 
@@ -135,16 +141,72 @@ describe('survey state (study variant)', () => {
     expect(localStorage.getItem(SESSION_KEY)).toBeNull()
   })
 
-  it('keeps the survey when the participant ID is corrected', async () => {
+  it('has no way to change the participant ID once logged in', async () => {
     await setup()
-    act(() => ctx.login('P-1', null))
-    act(() => ctx.setSurveyAnswer('pre.1', 2))
 
-    act(() => ctx.updateParticipantId('P-1-fixed'))
+    expect(ctx).not.toHaveProperty('updateParticipantId')
+  })
 
-    expect(ctx.state.survey.answers['pre.1']).toBe(2)
-    expect(savedSession().survey.answers['pre.1']).toBe(2)
-    expect(savedSession().participantId).toBe('P-1-fixed')
+  it('resumes a saved session only for the link it was started from', async () => {
+    const survey = { version: 'pre-1', consentAcceptedAt: null, answers: { 'pre.1': 3 }, completedAt: null }
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ participantId: 'P-OLD', treatment: null, survey }))
+
+    await setup('phase1', 'P-NEW')
+
+    expect(ctx.state.participantId).toBeNull()
+    expect(ctx.state.survey).toEqual(emptySurvey('pre-1'))
+  })
+
+  describe('treatment in the link', () => {
+    const saved = (treatment) =>
+      localStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({ participantId: 'P-1', treatment, survey: { version: 'pre-1', consentAcceptedAt: null, answers: { 'pre.1': 3 }, completedAt: null } }),
+      )
+
+    it('starts over when the link carries a different treatment than the saved session', async () => {
+      saved('A')
+
+      await setup('phase1', 'P-1', '&treatment=B')
+
+      expect(ctx.state.participantId).toBeNull()
+      expect(ctx.state.treatment).toBeNull()
+    })
+
+    it('resumes when the link carries the same treatment', async () => {
+      saved('A')
+
+      await setup('phase1', 'P-1', '&treatment=A')
+
+      expect(ctx.state.participantId).toBe('P-1')
+      expect(ctx.state.treatment).toBe('A')
+      expect(ctx.state.survey.answers['pre.1']).toBe(3)
+    })
+
+    it('resumes when the link carries no treatment, keeping the saved one', async () => {
+      saved('A')
+
+      await setup('phase1', 'P-1')
+
+      expect(ctx.state.participantId).toBe('P-1')
+      expect(ctx.state.treatment).toBe('A')
+    })
+
+    it('starts over when the link adds a treatment to a session saved without one', async () => {
+      saved(null)
+
+      await setup('phase1', 'P-1', '&treatment=A')
+
+      expect(ctx.state.participantId).toBeNull()
+    })
+  })
+
+  it('does not resume a saved session when the link carries no ID', async () => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ participantId: 'P-1', treatment: null }))
+
+    await setup('phase1', null)
+
+    expect(ctx.state.participantId).toBeNull()
   })
 
   it('resumes a saved survey after a reload', async () => {
@@ -180,7 +242,7 @@ describe('survey state (study variant)', () => {
   })
 })
 
-describe('log-out and consent guards (study variant)', () => {
+describe('log-out and consent guards (study phase)', () => {
   const IMAGE = { id: 'i1', name: 'a.png', url: 'blob:x', width: 1, height: 1 }
   const originalRevoke = URL.revokeObjectURL
 
@@ -259,6 +321,7 @@ describe('survey state (creator variant)', () => {
   afterEach(() => {
     unmountCurrent()
     localStorage.clear()
+    closeLink()
     vi.unstubAllEnvs()
   })
 

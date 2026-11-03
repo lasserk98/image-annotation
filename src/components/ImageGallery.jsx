@@ -3,6 +3,11 @@ import { useApp } from '../context/AppContext'
 import { filesToImages } from '../utils/loadImages'
 import { collectFilesFromDataTransfer } from '../utils/collectFiles'
 import { ZipError } from '../utils/extractZip'
+import { ACTIVE_PHASE } from '../variant'
+
+// "phase1/Phase1.PNG" → "phase1": the name without folders or extension, so a
+// download or a zip entry matches however it was saved.
+const imageBaseName = (name) => name.split('/').pop().replace(/\.[^.]+$/, '').toLowerCase()
 
 export default function ImageGallery() {
   const { state, addImages, removeImage, selectImage, t } = useApp()
@@ -12,6 +17,17 @@ export default function ImageGallery() {
   const [isDragging, setDragging] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // A study phase has one image to annotate, so loading a different or an extra
+  // one is almost certainly a slip. It is flagged, not blocked.
+  const expectedName = ACTIVE_PHASE?.imageName ?? null
+  const expectedCount = ACTIVE_PHASE?.expectedImages ?? null
+  let warning = ''
+  if (expectedCount !== null && images.length > expectedCount) {
+    warning = t('imageGallery.tooManyImages', { n: expectedCount })
+  } else if (expectedName && images.some((img) => imageBaseName(img.name) !== expectedName)) {
+    warning = t('imageGallery.wrongImage', { name: expectedName })
+  }
 
   async function handleFiles(fileList) {
     setLoading(true)
@@ -84,6 +100,16 @@ export default function ImageGallery() {
         </p>
       )}
 
+      {warning && (
+        <p
+          className="text-xs px-3 py-2 flex-shrink-0"
+          style={{ color: 'var(--accent-ink)', background: 'var(--accent-soft)' }}
+          role="status"
+        >
+          {warning}
+        </p>
+      )}
+
       <div
         className="panel-body"
         onDragOver={(e) => {
@@ -127,6 +153,11 @@ export default function ImageGallery() {
               {loading ? t('imageGallery.loading') : t('imageGallery.dropHere')}
             </span>
             <span style={{ color: 'var(--text-faint)' }}>{t('imageGallery.orBrowse')}</span>
+            {expectedName && (
+              <span style={{ color: 'var(--accent-ink)', fontWeight: 600 }}>
+                {t('imageGallery.expectedImage', { name: expectedName })}
+              </span>
+            )}
           </button>
         ) : (
           <div className="space-y-0.5">

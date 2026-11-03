@@ -3,9 +3,11 @@ import { useApp } from '../context/AppContext'
 
 // Shown to a study participant right after the export downloads. The file
 // just lands in the browser's download folder, so this says which file to
-// upload. It names no upload location: the repo is public, and the folder is
-// given in the participant's invitation email.
-export default function ExportDoneModal({ filename, onClose }) {
+// upload — by how its name ends, never with the participant ID in front of it,
+// since the ID is not shown to participants. It names no upload location: the
+// repo is public, and the folder is given in the participant's invitation
+// email. `phaseId` picks what the participant is told to do next.
+export default function ExportDoneModal({ fileEnding, phaseId, onClose }) {
   const { t } = useApp()
 
   // Empty deps intentional, as in UsageModal: mounted fresh each time it opens.
@@ -47,11 +49,14 @@ export default function ExportDoneModal({ filename, onClose }) {
           className="text-sm font-semibold rounded-lg px-3 py-2 mb-3 break-all"
           style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
         >
-          {filename}
+          {fileEnding}
         </p>
-        <p className="text-sm leading-relaxed mb-5" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-sm leading-relaxed mb-3" style={{ color: 'var(--text-muted)' }}>
           {t('exportDone.upload')}
         </p>
+        {phaseId && (
+          <p className="text-sm leading-relaxed mb-5 font-semibold">{t(`exportDone.next.${phaseId}`)}</p>
+        )}
         <div className="flex justify-end">
           <button onClick={onClose} className="toolbar-btn-primary" autoFocus>
             {t('usage.close')}

@@ -8,6 +8,7 @@
     "de": "Zeichne ein Polygon um jede erkennbare Struktur und weise ihr die richtige Klasse zu. Klicke, um Punkte zu setzen, und klicke erneut auf den ersten Punkt (oder drücke Enter), um die Form zu schließen. Nach dem Schließen kannst du die Punkte durch Ziehen verfeinern."
   },
   "treatments": [],
-  "studyPassword": "CI-study-2026",
-  "postPassword": "changeme-post"
+  "phase1Password": "CI-study-2026",
+  "phase2Password": "changeme-phase2",
+  "phase3Password": "changeme-phase3"
 }

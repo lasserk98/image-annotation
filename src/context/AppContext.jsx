@@ -18,6 +18,7 @@ import { emptySurvey, isSurveyComplete, sanitizeSurvey } from '../utils/survey'
 import { ACTIVE_SURVEY } from '../survey/activeSurvey'
 import { translate } from '../i18n/translations'
 import { isCreatorVariant } from '../variant'
+import { LINK_PARAMS } from '../utils/linkParams'
 
 const AppContext = createContext(null)
 
@@ -53,9 +54,25 @@ function applyTheme(theme) {
   }
 }
 
+// A saved session only counts for the personal link it was started from: the
+// participant's ID comes from that link, so a session saved under another ID
+// (a shared computer, or a link opened for someone else) must never be resumed
+// and have its answers exported under the wrong ID. The same goes for the
+// treatment: a link that names one wins over what the session saved, so a
+// participant cannot end up exported under the wrong group.
+function sessionForLink(session, linkId, linkTreatment) {
+  // `studentId` is the pre-rename key of the participant ID.
+  const savedId = session?.participantId ?? session?.studentId ?? null
+  if (!linkId || savedId !== linkId) return null
+  if (linkTreatment && (session.treatment ?? null) !== linkTreatment) return null
+  return session
+}
+
 // The Creator variant has no participant, so a session saved by an earlier
-// visit (or the study build on the same origin) is ignored rather than shown.
-const initialSession = isCreatorVariant ? null : loadSession()
+// visit (or a study phase on the same origin) is ignored rather than shown.
+const initialSession = isCreatorVariant
+  ? null
+  : sessionForLink(loadSession(), LINK_PARAMS.id, LINK_PARAMS.treatment)
 // The creator starts from the (empty) bundled list and keeps whatever list they
 // loaded; the study is locked to its fixed list, so a list saved in this
 // browser is ignored rather than trusted.
@@ -86,7 +103,7 @@ const initialState = {
   survey: sanitizeSurvey(initialSession?.survey, ACTIVE_SURVEY),
   lang: storedLang === 'de' || storedLang === 'en' ? storedLang : defaultLang,
   theme: initialTheme,
-  // Never persisted. The Creator variant is always unlocked; the study variant
+  // Never persisted. The Creator variant is always unlocked; a study phase
   // has no way to edit classes at all.
   creatorMode: isCreatorVariant,
   classes: initialClasses,
@@ -137,11 +154,6 @@ function reducer(state, action) {
         hoveredShapeId: null,
         justLoggedIn: false,
       }
-    }
-    case 'UPDATE_PARTICIPANT_ID': {
-      const participantId = action.participantId
-      persistSession({ participantId, treatment: state.treatment, survey: state.survey })
-      return { ...state, participantId }
     }
     case 'ACCEPT_CONSENT': {
       // Keep the first time consent was given.
@@ -359,10 +371,6 @@ export function AppProvider({ children }) {
     [],
   )
   const hoverShape = useCallback((shapeId) => dispatch({ type: 'HOVER_SHAPE', shapeId }), [])
-  const updateParticipantId = useCallback(
-    (participantId) => dispatch({ type: 'UPDATE_PARTICIPANT_ID', participantId }),
-    [],
-  )
   const setLang = useCallback((lang) => dispatch({ type: 'SET_LANG', lang }), [])
   const setTheme = useCallback((theme) => dispatch({ type: 'SET_THEME', theme }), [])
   const setClasses = useCallback((classes) => dispatch({ type: 'SET_CLASSES', classes }), [])
@@ -396,7 +404,6 @@ export function AppProvider({ children }) {
       redo,
       selectShape,
       hoverShape,
-      updateParticipantId,
       setLang,
       setTheme,
       setClasses,
@@ -423,7 +430,6 @@ export function AppProvider({ children }) {
       redo,
       selectShape,
       hoverShape,
-      updateParticipantId,
       setLang,
       setTheme,
       setClasses,

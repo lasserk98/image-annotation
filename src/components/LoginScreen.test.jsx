@@ -1,149 +1,163 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import study from '../config/study.json'
+import { PHASES } from '../phases'
 import { CONSENT_TEXT } from '../survey/consentText'
-import { seedSession } from '../test/surveyHelpers'
+import { closeLink, openLink, seedSession } from '../test/surveyHelpers'
 
-// The login screen is the study entry gate: it only exists in the study
-// variant. The variant is read at import time, so each test loads a fresh
-// module graph, and its render is unmounted explicitly afterwards.
+// The login screen is the entry gate of every study phase: the participant only
+// enters the password, since their ID comes from the personal link. The phase
+// and the link are read at import time, so each test loads a fresh module graph
+// and its render is unmounted explicitly afterwards.
 let unmountCurrent = () => {}
 let rtl
 
-async function renderStudyApp(variant = 'study') {
+async function renderPhase(phase = 'phase1', { id = 'P-1234', extra = '' } = {}) {
   vi.resetModules()
-  vi.stubEnv('VITE_APP_VARIANT', variant)
+  vi.stubEnv('VITE_APP_VARIANT', phase)
+  openLink(id, extra)
   rtl = await import('@testing-library/react')
   const { default: App } = await import('../App')
   unmountCurrent = rtl.render(<App />).unmount
   return rtl.screen
 }
 
-function enter(screen, { id, password }) {
+function enterPassword(screen, password) {
   const { fireEvent } = rtl
-  fireEvent.change(screen.getByLabelText('Participant ID'), { target: { value: id } })
   fireEvent.change(screen.getByLabelText('Study password'), { target: { value: password } })
   fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
 }
 
-describe('study entry gate', () => {
-  beforeEach(() => {
-    localStorage.clear()
-    localStorage.setItem('seg-annotate:lang', 'en')
-  })
+const savedSession = (phase) => JSON.parse(localStorage.getItem(PHASES[phase].sessionKey))
 
-  afterEach(() => {
-    unmountCurrent()
-    localStorage.clear()
-    vi.unstubAllEnvs()
-  })
+beforeEach(() => {
+  localStorage.clear()
+  localStorage.setItem('seg-annotate:lang', 'en')
+})
 
-  it('lets a participant in with the study ID and the right password, on to the consent step', async () => {
-    const screen = await renderStudyApp()
+afterEach(() => {
+  unmountCurrent()
+  localStorage.clear()
+  closeLink()
+  vi.unstubAllEnvs()
+})
 
-    enter(screen, { id: 'P-1234', password: study.studyPassword })
+describe('phase 1 entry gate', () => {
+  it('lets a participant in with the right password, on to the consent step', async () => {
+    const screen = await renderPhase('phase1')
+
+    enterPassword(screen, study.phase1Password)
 
     expect(screen.getByRole('heading', { name: CONSENT_TEXT.title })).toBeInTheDocument()
     expect(screen.queryByLabelText('Study password')).not.toBeInTheDocument()
-    expect(JSON.parse(localStorage.getItem('seg-annotate:session')).participantId).toBe('P-1234')
+  })
+
+  it('takes the participant ID from the link, never from a field', async () => {
+    const screen = await renderPhase('phase1', { id: 'P-1234' })
+
+    expect(screen.queryByLabelText(/participant ID/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+
+    enterPassword(screen, study.phase1Password)
+
+    expect(savedSession('phase1').participantId).toBe('P-1234')
   })
 
   it('rejects a wrong password and stays on the entry screen', async () => {
-    const screen = await renderStudyApp()
+    const screen = await renderPhase('phase1')
 
-    enter(screen, { id: 'P-1234', password: 'not-the-password' })
+    enterPassword(screen, 'not-the-password')
 
     expect(screen.getByRole('alert')).toHaveTextContent(/study password/i)
     expect(screen.getByLabelText('Study password')).toBeInTheDocument()
   })
 
   it('rejects an empty password', async () => {
-    const screen = await renderStudyApp()
+    const screen = await renderPhase('phase1')
 
-    enter(screen, { id: 'P-1234', password: '' })
+    enterPassword(screen, '')
 
     expect(screen.getByRole('alert')).toHaveTextContent(/study password/i)
   })
 
-  it('still requires a study ID', async () => {
-    const screen = await renderStudyApp()
-
-    enter(screen, { id: '   ', password: study.studyPassword })
-
-    expect(screen.getByRole('alert')).toHaveTextContent(/participant ID/i)
-  })
-
   it('does not store a participant session after a wrong password', async () => {
-    const screen = await renderStudyApp()
+    const screen = await renderPhase('phase1')
 
-    enter(screen, { id: 'P-1234', password: 'nope' })
+    enterPassword(screen, 'nope')
 
-    expect(localStorage.getItem('seg-annotate:session')).toBeNull()
+    expect(localStorage.getItem(PHASES.phase1.sessionKey)).toBeNull()
   })
 
   it('restores a saved session on reload without asking for the password again', async () => {
     seedSession('P-77')
 
-    const screen = await renderStudyApp()
+    const screen = await renderPhase('phase1', { id: 'P-77' })
 
-    expect(screen.getByText('P-77')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Study password')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '⬇ Export' })).toBeInTheDocument()
+  })
+
+  it('names the phase on the entry screen', async () => {
+    const screen = await renderPhase('phase1')
+
+    expect(screen.getByText('Phase 1 of 3')).toBeInTheDocument()
   })
 })
 
-describe('post entry gate', () => {
-  beforeEach(() => {
-    localStorage.clear()
-    localStorage.setItem('seg-annotate:lang', 'en')
-  })
+describe('phase passwords', () => {
+  it.each([
+    ['phase1', 'phase2'],
+    ['phase1', 'phase3'],
+    ['phase2', 'phase1'],
+    ['phase2', 'phase3'],
+    ['phase3', 'phase1'],
+    ['phase3', 'phase2'],
+  ])('%s does not accept the password of %s', async (phase, other) => {
+    const screen = await renderPhase(phase)
 
-  afterEach(() => {
-    unmountCurrent()
-    localStorage.clear()
-    vi.unstubAllEnvs()
-  })
-
-  it('has its own password, separate from the study password', () => {
-    expect(study.postPassword).toBeTruthy()
-    expect(study.postPassword).not.toBe(study.studyPassword)
-  })
-
-  it('lets a participant in with the post password, straight to the first survey question', async () => {
-    const screen = await renderStudyApp('post')
-
-    enter(screen, { id: 'P-1234', password: study.postPassword })
-
-    expect(screen.getByRole('heading', { name: 'Postinterventioneller Fragebogen' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: CONSENT_TEXT.title })).not.toBeInTheDocument()
-    expect(JSON.parse(localStorage.getItem('seg-annotate:post-session')).participantId).toBe('P-1234')
-    expect(localStorage.getItem('seg-annotate:session')).toBeNull()
-  })
-
-  it('rejects the study password', async () => {
-    const screen = await renderStudyApp('post')
-
-    enter(screen, { id: 'P-1234', password: study.studyPassword })
-
-    expect(screen.getByRole('alert')).toHaveTextContent(/password/i)
-    expect(screen.getByLabelText('Study password')).toBeInTheDocument()
-  })
-
-  it('does not accept the post password on the study page', async () => {
-    const screen = await renderStudyApp('study')
-
-    enter(screen, { id: 'P-1234', password: study.postPassword })
+    enterPassword(screen, study[PHASES[other].passwordKey])
 
     expect(screen.getByRole('alert')).toBeInTheDocument()
   })
 
-  it('does not pick up a study session saved in the same browser', async () => {
-    seedSession('P-STUDY')
-    const screen = await renderStudyApp('post')
+  it.each(['phase2', 'phase3'])('%s accepts its own password, straight to its survey with no consent step', async (phase) => {
+    const screen = await renderPhase(phase)
 
-    expect(screen.getByLabelText('Participant ID')).toBeInTheDocument()
+    enterPassword(screen, study[PHASES[phase].passwordKey])
+
+    expect(screen.queryByRole('heading', { name: CONSENT_TEXT.title })).not.toBeInTheDocument()
+    expect(savedSession(phase).participantId).toBe('P-1234')
   })
 
-  it('shows no treatment picker, even when treatments are configured', async () => {
+  it('does not pick up a session of another phase saved in the same browser', async () => {
+    seedSession('P-1234', { phase: 'phase1' })
+
+    const screen = await renderPhase('phase3', { id: 'P-1234' })
+
+    expect(screen.getByLabelText('Study password')).toBeInTheDocument()
+  })
+})
+
+describe('treatment from the link', () => {
+  it.each(['phase1', 'phase2', 'phase3'])('records ?treatment= in %s', async (phase) => {
+    const screen = await renderPhase(phase, { extra: '&treatment=A' })
+
+    enterPassword(screen, study[PHASES[phase].passwordKey])
+
+    expect(savedSession(phase).treatment).toBe('A')
+  })
+
+  it('records no treatment when the link has none', async () => {
+    const screen = await renderPhase('phase1')
+
+    enterPassword(screen, study.phase1Password)
+
+    expect(savedSession('phase1').treatment).toBeNull()
+  })
+
+  async function renderWithTreatments(extra) {
     vi.resetModules()
-    vi.stubEnv('VITE_APP_VARIANT', 'post')
+    vi.stubEnv('VITE_APP_VARIANT', 'phase2')
+    openLink('P-1234', extra)
     vi.doMock('../config/study.json', async (importOriginal) => {
       const original = (await importOriginal()).default
       return { default: { ...original, treatments: ['A', 'B'] } }
@@ -151,8 +165,20 @@ describe('post entry gate', () => {
     rtl = await import('@testing-library/react')
     const { default: App } = await import('../App')
     unmountCurrent = rtl.render(<App />).unmount
+    return rtl.screen
+  }
 
-    expect(rtl.screen.queryByLabelText(/treatment/i)).not.toBeInTheDocument()
+  it('offers a treatment picker when treatments are configured and the link has none', async () => {
+    const screen = await renderWithTreatments('')
+
+    expect(screen.getByLabelText(/treatment/i)).toBeInTheDocument()
+    vi.doUnmock('../config/study.json')
+  })
+
+  it('locks the treatment to the link, with no picker', async () => {
+    const screen = await renderWithTreatments('&treatment=B')
+
+    expect(screen.queryByLabelText(/treatment/i)).not.toBeInTheDocument()
     vi.doUnmock('../config/study.json')
   })
 })

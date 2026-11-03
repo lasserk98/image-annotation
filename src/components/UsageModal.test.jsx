@@ -55,9 +55,9 @@ describe('UsageModal', () => {
     })
   })
 
-  describe('study variant', () => {
+  describe('study phase', () => {
     it('keeps the study instructions, steps and shortcuts', async () => {
-      const screen = await renderModal('study')
+      const screen = await renderModal('phase1')
 
       expect(screen.getByText('Study instructions')).toBeInTheDocument()
       expect(screen.getByText('How to annotate')).toBeInTheDocument()
@@ -67,7 +67,7 @@ describe('UsageModal', () => {
     it('translates the shortcut key labels, not only their descriptions', async () => {
       localStorage.setItem('seg-annotate:lang', 'de')
 
-      const screen = await renderModal('study')
+      const screen = await renderModal('phase1')
 
       expect(screen.getByText('Scrollen')).toBeInTheDocument()
       expect(screen.getByText('Doppelklick auf Punkt')).toBeInTheDocument()
@@ -75,18 +75,19 @@ describe('UsageModal', () => {
     })
 
     it('says the classes are preset and never mentions Creator Mode', async () => {
-      const screen = await renderModal('study')
+      const screen = await renderModal('phase1')
 
       expect(screen.getByText(/classes are preset and fixed/i)).toBeInTheDocument()
       expect(screen.queryByText(/Creator Mode/i)).not.toBeInTheDocument()
     })
 
     it('explains the export file and the upload in the last step', async () => {
-      const screen = await renderModal('study')
+      const screen = await renderModal('phase1')
 
-      const step = screen.getByText(/saved as one file named after your study ID/)
+      const step = screen.getByText(/saved as one file\. Upload that file/)
       expect(step).toHaveTextContent(/Upload that file to the shared study folder/)
       expect(step).toHaveTextContent(/upload only the latest file/)
+      expect(step).not.toHaveTextContent(/study ID/)
     })
   })
 })

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// These tests cover the locked class list of the study variant (the creator
+// These tests cover the locked class list of a study phase (the creator
 // variant is always unlocked). The variant and the
 // provider's initial state are read at import time, so the module graph is
 // reset and re-imported per test — React and Testing Library included, so they
@@ -12,7 +12,7 @@ let unmountCurrent = () => {}
 async function renderInAnnotationMode() {
   vi.resetModules()
   localStorage.setItem('seg-annotate:lang', 'en')
-  vi.stubEnv('VITE_APP_VARIANT', 'study')
+  vi.stubEnv('VITE_APP_VARIANT', 'phase1')
   const { render, screen } = await import('@testing-library/react')
   const { AppProvider } = await import('../context/AppContext')
   const { default: ClassPicker } = await import('./ClassPicker')
@@ -24,7 +24,7 @@ async function renderInAnnotationMode() {
   return screen
 }
 
-describe('ClassPicker in the study variant', () => {
+describe('ClassPicker in a study phase', () => {
   beforeEach(() => {
     localStorage.clear()
   })

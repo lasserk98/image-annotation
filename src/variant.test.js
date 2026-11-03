@@ -13,46 +13,42 @@ describe('app variant', () => {
   it('defaults to the creator variant when nothing is configured', async () => {
     vi.stubEnv('VITE_APP_VARIANT', '')
 
-    const { APP_VARIANT, isCreatorVariant } = await loadVariant()
+    const { APP_VARIANT, ACTIVE_PHASE, isCreatorVariant } = await loadVariant()
 
     expect(APP_VARIANT).toBe('creator')
     expect(isCreatorVariant).toBe(true)
+    expect(ACTIVE_PHASE).toBeNull()
   })
 
-  it('selects the study variant when configured', async () => {
-    vi.stubEnv('VITE_APP_VARIANT', 'study')
+  it.each(['phase1', 'phase2', 'phase3'])('selects %s when configured, which is not the creator', async (phase) => {
+    vi.stubEnv('VITE_APP_VARIANT', phase)
 
-    const { APP_VARIANT, isCreatorVariant } = await loadVariant()
+    const { APP_VARIANT, ACTIVE_PHASE, isCreatorVariant } = await loadVariant()
 
-    expect(APP_VARIANT).toBe('study')
+    expect(APP_VARIANT).toBe(phase)
     expect(isCreatorVariant).toBe(false)
+    expect(ACTIVE_PHASE.id).toBe(phase)
   })
 
-  it('selects the post variant when configured, which is not the creator', async () => {
-    vi.stubEnv('VITE_APP_VARIANT', 'post')
+  it('gives each phase its own number', async () => {
+    const numbers = []
+    for (const phase of ['phase1', 'phase2', 'phase3']) {
+      vi.stubEnv('VITE_APP_VARIANT', phase)
+      numbers.push((await loadVariant()).ACTIVE_PHASE.number)
+    }
 
-    const { APP_VARIANT, isCreatorVariant, isPostVariant } = await loadVariant()
-
-    expect(APP_VARIANT).toBe('post')
-    expect(isCreatorVariant).toBe(false)
-    expect(isPostVariant).toBe(true)
+    expect(numbers).toEqual([1, 2, 3])
   })
 
-  it('is not the post variant for creator or study', async () => {
-    for (const value of ['', 'study']) {
+  it.each(['something-else', 'study', 'post', 'constructor', 'toString'])(
+    'falls back to creator for %s, so a typo never locks the tool behind a login',
+    async (value) => {
       vi.stubEnv('VITE_APP_VARIANT', value)
 
-      const { isPostVariant } = await loadVariant()
+      const { APP_VARIANT, ACTIVE_PHASE } = await loadVariant()
 
-      expect(isPostVariant).toBe(false)
-    }
-  })
-
-  it('falls back to creator for an unknown value', async () => {
-    vi.stubEnv('VITE_APP_VARIANT', 'something-else')
-
-    const { APP_VARIANT } = await loadVariant()
-
-    expect(APP_VARIANT).toBe('creator')
-  })
+      expect(APP_VARIANT).toBe('creator')
+      expect(ACTIVE_PHASE).toBeNull()
+    },
+  )
 })

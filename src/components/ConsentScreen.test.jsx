@@ -118,12 +118,10 @@ describe('ConsentScreen', () => {
     expect(screen.getByTestId('state')).toHaveTextContent('P-1|pending')
   })
 
-  it('lets the participant log out to correct a wrong ID', () => {
+  it('has no log-out button, since the participant ID comes from the link and cannot be mistyped', () => {
     renderConsent()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Log out' }))
-
-    expect(screen.getByTestId('state')).toHaveTextContent('no-participant')
+    expect(screen.queryByRole('button', { name: 'Log out' })).not.toBeInTheDocument()
   })
 
   it('lets the participant switch the interface language, not the German consent text', () => {

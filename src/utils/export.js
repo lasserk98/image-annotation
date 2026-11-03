@@ -6,11 +6,15 @@ import { polygonArea } from './geometry'
 // happened to render/zoom the image during annotation.
 // The Creator variant has no participant, so `participantId` is null there.
 // schemaVersion 2 renamed the top-level `studentId` field to `participantId`.
-// schemaVersion 3 added the optional top-level `survey` (study variant only);
+// schemaVersion 3 added the optional top-level `survey` (study phases only);
 // everything else is as before. The survey is copied in raw: answers by item
 // id, no scoring.
+// schemaVersion 4 added the top-level `phase` ('phase1' | 'phase2' | 'phase3',
+// null for the Creator): a participant uploads one file per phase, and every
+// phase now carries the survey and the annotations of its image.
 export function buildExportData({
   participantId = null,
+  phase = null,
   treatment,
   images,
   shapesByImage,
@@ -21,10 +25,11 @@ export function buildExportData({
 
   return {
     participantId,
+    phase,
     treatment: treatment || null,
     exportedAt: new Date().toISOString(),
     tool: 'image-annotation',
-    schemaVersion: 3,
+    schemaVersion: 4,
     ...(survey && { survey: copySurvey(survey) }),
     images: images.map((img) => {
       const shapes = shapesByImage[img.id] || []
@@ -41,19 +46,6 @@ export function buildExportData({
         })),
       }
     }),
-  }
-}
-
-// The post-survey file: the participant ID and the raw questionnaire answers,
-// nothing else — no images, shapes or treatment. Analysed outside this repo,
-// weeks after the study.
-export function buildPostExportData({ participantId, survey }) {
-  return {
-    participantId,
-    exportedAt: new Date().toISOString(),
-    tool: 'image-annotation',
-    schemaVersion: 3,
-    survey: copySurvey(survey),
   }
 }
 
@@ -83,14 +75,20 @@ export function toJsonFilename(name, fallback = 'classes') {
 // leading dots are dropped so the name can be neither hidden nor a path
 // climb. Built directly rather than through `toJsonFilename`, which would
 // read the tail of an ID like `P.12` as a file extension.
-// An optional `suffix` tells files of the same participant apart: the post
-// survey is `<id>_post.json`, so it never collides with the study `<id>.json`.
+// The optional `suffix` is the phase, which tells the three files of one
+// participant apart: `<id>_phase1.json`, `<id>_phase2.json`, `<id>_phase3.json`.
 export function participantFilename(participantId, suffix = '') {
   const base = String(participantId ?? '')
     .trim()
     .replace(/[^A-Za-z0-9._-]/g, '_')
     .replace(/^\.+/, '')
   return `${base || 'study'}${suffix ? `_${suffix}` : ''}.json`
+}
+
+// How a phase's file name ends. The participant is told this much of the name
+// (never the ID in front of it) so they can find the file to upload.
+export function phaseFileEnding(phaseId) {
+  return `_${phaseId}.json`
 }
 
 export function downloadJSON(filename, data) {

@@ -1,8 +1,9 @@
-import { isPostVariant } from '../variant'
+import { ACTIVE_PHASE } from '../variant'
 
-// The study and post pages are served from one origin, so each keeps its
-// session under its own key and can never read the other's.
-const SESSION_KEY = isPostVariant ? 'seg-annotate:post-session' : 'seg-annotate:session'
+// The study phases are served from one origin, so each keeps its session under
+// its own key and can never read another's. The creator has no session; the
+// fallback key is never used for one.
+const SESSION_KEY = ACTIVE_PHASE?.sessionKey ?? 'seg-annotate:session'
 const CLASSES_KEY = 'seg-annotate:classes'
 const LANG_KEY = 'seg-annotate:lang'
 const THEME_KEY = 'seg-annotate:theme'

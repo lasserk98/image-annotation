@@ -12,12 +12,12 @@ function InLanguage({ lang, children }) {
   return children
 }
 
-function renderModal(lang) {
+function renderModal(lang, phaseId = 'phase1') {
   const onClose = vi.fn()
   render(
     <AppProvider>
       <InLanguage lang={lang}>
-        <ExportDoneModal filename="P-1.json" onClose={onClose} />
+        <ExportDoneModal fileEnding={`_${phaseId}.json`} phaseId={phaseId} onClose={onClose} />
       </InLanguage>
     </AppProvider>,
   )
@@ -28,18 +28,35 @@ describe('ExportDoneModal', () => {
   beforeEach(() => localStorage.clear())
   afterEach(() => localStorage.clear())
 
-  it('names the saved file and says to upload it', () => {
+  it('says how the saved file name ends, without an ID, and to upload it', () => {
     renderModal('en')
 
-    expect(screen.getByRole('dialog')).toHaveTextContent('P-1.json')
+    expect(screen.getByRole('dialog')).toHaveTextContent('_phase1.json')
     expect(screen.getByRole('dialog')).toHaveTextContent(/upload/i)
+    expect(screen.getByRole('dialog')).not.toHaveTextContent('P-')
   })
 
   it('is in German when the interface is German', () => {
     renderModal('de')
 
-    expect(screen.getByRole('dialog')).toHaveTextContent('P-1.json')
+    expect(screen.getByRole('dialog')).toHaveTextContent('_phase1.json')
     expect(screen.getByRole('dialog')).toHaveTextContent(/lade diese Datei/i)
+  })
+
+  it.each([
+    ['phase1', /watch the video/i],
+    ['phase2', /Phase 2 is done/i],
+    ['phase3', /follow-up/i],
+  ])('tells the participant what comes next after %s', (phaseId, expected) => {
+    renderModal('en', phaseId)
+
+    expect(screen.getByRole('dialog')).toHaveTextContent(expected)
+  })
+
+  it('tells the participant what comes next in German too', () => {
+    renderModal('de', 'phase1')
+
+    expect(screen.getByRole('dialog')).toHaveTextContent(/Video/)
   })
 
   it('closes with the button', () => {

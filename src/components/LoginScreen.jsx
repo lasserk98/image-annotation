@@ -1,41 +1,34 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
-import { isPostVariant } from '../variant'
+import { LINK_PARAMS } from '../utils/linkParams'
+import { ACTIVE_PHASE } from '../variant'
+import PhaseBadge from './PhaseBadge'
 import ScreenControls from './ScreenControls'
 
+// The entry gate of a study phase. The participant only enters the password:
+// their ID comes from the personal link in their email (and is never shown),
+// and so does the treatment, when the link carries one.
 export default function LoginScreen() {
   const { login, t, state } = useApp()
-  const [participantId, setParticipantId] = useState('')
   const [password, setPassword] = useState('')
   const [treatment, setTreatment] = useState('')
   const [error, setError] = useState('')
 
-  const urlTreatment = useMemo(
-    () => new URLSearchParams(window.location.search).get('treatment'),
-    [],
-  )
-  const lockedTreatment = Boolean(urlTreatment)
+  const lockedTreatment = Boolean(LINK_PARAMS.treatment)
 
   function handleSubmit(e) {
     e.preventDefault()
-    const id = participantId.trim()
-    if (!id) {
-      setError(t('login.errorEmpty'))
-      return
-    }
     // This only ever runs in the browser, so the password ships inside the
     // app bundle — it keeps casual visitors out of the study page, it is not
     // an access-control boundary.
-    // Both passwords live in study.json, so both ship in every bundle that
+    // All phase passwords live in study.json, so they ship in every bundle that
     // imports it: they keep casual visitors out, they do not gate by time.
-    if (password !== (isPostVariant ? study.postPassword : study.studyPassword)) {
+    if (password !== study[ACTIVE_PHASE.passwordKey]) {
       setError(t('login.errorPassword'))
       return
     }
-    // Treatments belong to the annotation study; the post page has none.
-    const finalTreatment = isPostVariant ? null : urlTreatment || treatment || null
-    login(id, finalTreatment)
+    login(LINK_PARAMS.id, LINK_PARAMS.treatment || treatment || null)
   }
 
   const studyName = typeof study.studyName === 'object' ? study.studyName[state.lang] : study.studyName
@@ -71,39 +64,17 @@ export default function LoginScreen() {
             />
           </svg>
         </div>
+        <div className="mb-2">
+          <PhaseBadge />
+        </div>
         <h1 className="text-xl font-semibold mb-1.5" style={{ color: 'var(--text)' }}>
           {studyName}
         </h1>
         <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
-          {t(isPostVariant ? 'login.subtitlePost' : 'login.subtitle')}
+          {t('login.subtitle')}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="participant-id"
-              className="block text-xs font-semibold mb-1.5"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              {t('login.participantId')}
-            </label>
-            <input
-              id="participant-id"
-              name="participant-id"
-              autoFocus
-              autoComplete="off"
-              value={participantId}
-              onChange={(e) => {
-                setParticipantId(e.target.value)
-                setError('')
-              }}
-              placeholder={t('login.idPlaceholder')}
-              className="field"
-              aria-invalid={Boolean(error)}
-              aria-describedby={error ? 'participant-id-error' : undefined}
-            />
-          </div>
-
           <div>
             <label
               htmlFor="study-password"
@@ -116,6 +87,7 @@ export default function LoginScreen() {
               id="study-password"
               name="study-password"
               type="password"
+              autoFocus
               autoComplete="off"
               value={password}
               onChange={(e) => {
@@ -124,11 +96,11 @@ export default function LoginScreen() {
               }}
               className="field"
               aria-invalid={Boolean(error)}
-              aria-describedby={error ? 'participant-id-error' : undefined}
+              aria-describedby={error ? 'login-error' : undefined}
             />
           </div>
 
-          {!isPostVariant && !lockedTreatment && study.treatments?.length > 0 && (
+          {!lockedTreatment && study.treatments?.length > 0 && (
             <div>
               <label
                 htmlFor="treatment"
@@ -154,7 +126,7 @@ export default function LoginScreen() {
           )}
 
           {error && (
-            <p id="participant-id-error" className="text-xs" style={{ color: 'var(--danger)' }} role="alert">
+            <p id="login-error" className="text-xs" style={{ color: 'var(--danger)' }} role="alert">
               {error}
             </p>
           )}

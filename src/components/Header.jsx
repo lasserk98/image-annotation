@@ -3,23 +3,23 @@ import { useApp } from '../context/AppContext'
 import study from '../config/study.json'
 import { ACTIVE_SURVEY } from '../survey/activeSurvey'
 import { sanitizeSurvey } from '../utils/survey'
-import { buildExportData, downloadJSON, participantFilename } from '../utils/export'
+import { buildExportData, downloadJSON, participantFilename, phaseFileEnding } from '../utils/export'
 import UsageModal from './UsageModal'
 import ExportWarningModal from './ExportWarningModal'
 import ExportFilenameModal from './ExportFilenameModal'
 import ExportDoneModal from './ExportDoneModal'
-import { isCreatorVariant } from '../variant'
-import EditableField from './EditableField'
+import { ACTIVE_PHASE, isCreatorVariant } from '../variant'
+import PhaseBadge from './PhaseBadge'
 import { ThemeIcon } from './ThemeToggle'
 import { THEME_CYCLE, THEME_LABEL_KEYS } from '../utils/theme'
 
 export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRight }) {
-  const { state, logout, clearJustLoggedIn, updateParticipantId, setLang, setTheme, t } = useApp()
+  const { state, logout, clearJustLoggedIn, setLang, setTheme, t } = useApp()
   const { participantId, treatment, images, shapesByImage, classes, lang, theme, creatorMode } = state
   const [showUsage, setShowUsage] = useState(false)
   const [showExportWarning, setShowExportWarning] = useState(false)
   const [showExportNameModal, setShowExportNameModal] = useState(false)
-  const [exportedFilename, setExportedFilename] = useState(null)
+  const [showExportDone, setShowExportDone] = useState(false)
 
   // Header is remounted fresh each time Workspace swaps in for LoginScreen,
   // so this only fires once per actual login — not on every reload of a
@@ -47,21 +47,22 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
   // so a cleared free-text box leaves no empty answer in the file.
   function downloadAnnotations(filename) {
     const survey = isCreatorVariant ? null : sanitizeSurvey(state.survey, ACTIVE_SURVEY)
-    const data = buildExportData({ participantId, treatment, images, shapesByImage, classes, survey })
+    const phase = ACTIVE_PHASE?.id ?? null
+    const data = buildExportData({ participantId, phase, treatment, images, shapesByImage, classes, survey })
     downloadJSON(filename, data)
   }
 
-  // Participants get one file named after their ID, then a reminder to upload
-  // it; creators have no participant, so they choose the name themselves.
+  // Participants get one file per phase, named after their ID and the phase
+  // (`<id>_phase1.json`), then a reminder to upload it; creators have no
+  // participant, so they choose the name themselves.
   function runExport() {
     setShowExportWarning(false)
     if (isCreatorVariant) {
       setShowExportNameModal(true)
       return
     }
-    const filename = participantFilename(participantId)
-    downloadAnnotations(filename)
-    setExportedFilename(filename)
+    downloadAnnotations(participantFilename(participantId, ACTIVE_PHASE.id))
+    setShowExportDone(true)
   }
 
   // Leaving a frame unannotated is usually an oversight rather than a
@@ -125,6 +126,7 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
       <p className="text-sm font-semibold truncate min-w-0" style={{ color: 'var(--text)' }}>
         {studyName}
       </p>
+      <PhaseBadge />
 
       {/* Always visible while unlocked, not just on the toggle button — a
           creator shouldn't have to remember which mode they left it in
@@ -196,28 +198,10 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
         className="flex items-center gap-2 pl-2 ml-1 flex-shrink-0"
         style={{ borderLeft: '1px solid var(--border)' }}
       >
-        {!isCreatorVariant && (
-          <div className="text-right leading-tight">
-            <p
-              className="text-[10px] uppercase tracking-wide"
-              style={{ color: 'var(--text-muted)', letterSpacing: '0.05em' }}
-            >
-              {t('header.participantIdLabel')}
-            </p>
-            <div className="flex justify-end">
-              <EditableField
-                value={participantId}
-                placeholder={t('login.idPlaceholder')}
-                title={t('header.editIdTitle')}
-                onCommit={(v) => v && updateParticipantId(v)}
-              />
-            </div>
-            {treatment && (
-              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                {t('header.treatmentLabel', { t: treatment })}
-              </p>
-            )}
-          </div>
+        {!isCreatorVariant && treatment && (
+          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+            {t('header.treatmentLabel', { t: treatment })}
+          </p>
         )}
         <button
           onClick={() => setTheme(THEME_CYCLE[theme])}
@@ -250,8 +234,12 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
           onConfirm={runExport}
         />
       )}
-      {exportedFilename && (
-        <ExportDoneModal filename={exportedFilename} onClose={() => setExportedFilename(null)} />
+      {showExportDone && (
+        <ExportDoneModal
+          fileEnding={phaseFileEnding(ACTIVE_PHASE.id)}
+          phaseId={ACTIVE_PHASE.id}
+          onClose={() => setShowExportDone(false)}
+        />
       )}
       {showExportNameModal && (
         <ExportFilenameModal

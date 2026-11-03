@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { POST_SURVEY } from '../survey/postSurvey'
 import { PRE_SURVEY } from '../survey/preSurvey'
-import { answersFor, seedSession } from '../test/surveyHelpers'
+import { answersFor, closeLink, openLink, seedSession } from '../test/surveyHelpers'
 
-// Study-variant counterpart of Header.test.jsx, guarding that the participant
-// flow is unchanged. The variant is read at import time, so the module graph
-// is reset per test; React, Testing Library and the export mock are
-// (re)loaded with it so everything shares one instance.
+// Study-phase counterpart of Header.test.jsx, guarding that the participant
+// flow works in every phase. The phase and the link are read at import time, so
+// the module graph is reset per test; React, Testing Library and the export mock
+// are (re)loaded with it so everything shares one instance.
 let unmountCurrent = () => {}
 
 const IMAGE = { id: 'i1', name: 'scan.png', url: 'blob:x', width: 10, height: 10 }
@@ -19,9 +20,10 @@ const SHAPE = {
   ],
 }
 
-async function renderStudyHeader() {
+async function renderStudyHeader(phase = 'phase1') {
   vi.resetModules()
-  vi.stubEnv('VITE_APP_VARIANT', 'study')
+  vi.stubEnv('VITE_APP_VARIANT', phase)
+  openLink('P-42')
   const downloadJSON = vi.fn()
   vi.doMock('../utils/export', async (importOriginal) => ({
     ...(await importOriginal()),
@@ -50,7 +52,7 @@ async function renderStudyHeader() {
   return { screen, downloadJSON }
 }
 
-describe('Header in the study variant', () => {
+describe('Header in a study phase', () => {
   beforeEach(() => {
     localStorage.clear()
     seedSession('P-42')
@@ -60,16 +62,19 @@ describe('Header in the study variant', () => {
   afterEach(() => {
     unmountCurrent()
     localStorage.clear()
+    closeLink()
     vi.doUnmock('../utils/export')
     vi.unstubAllEnvs()
   })
 
-  it('shows the participant ID and log-out', async () => {
+  it('shows the phase and log-out, but never the participant ID', async () => {
     const { screen } = await renderStudyHeader()
 
-    expect(screen.getByText('Participant ID')).toBeInTheDocument()
-    expect(screen.getByText('P-42')).toBeInTheDocument()
+    expect(screen.getByText('Phase 1 of 3')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Log out' })).toBeInTheDocument()
+    expect(screen.queryByText('Participant ID')).not.toBeInTheDocument()
+    expect(screen.queryByText('P-42')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'P-42' })).not.toBeInTheDocument()
   })
 
   it('has no lock toggle or Creator Mode badge', async () => {
@@ -85,7 +90,7 @@ describe('Header in the study variant', () => {
     expect(screen.getByText('Segmentation Annotation Study')).toBeInTheDocument()
   })
 
-  it('exports straight away as one file named after the participant ID', async () => {
+  it('exports straight away as one file named after the participant ID and the phase', async () => {
     const { screen, downloadJSON } = await renderStudyHeader()
 
     screen.getByRole('button', { name: '⬇ Export' }).click()
@@ -93,8 +98,10 @@ describe('Header in the study variant', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
     expect(downloadJSON).toHaveBeenCalledTimes(1)
     const [filename, payload] = downloadJSON.mock.calls[0]
-    expect(filename).toBe('P-42.json')
+    expect(filename).toBe('P-42_phase1.json')
     expect(payload.participantId).toBe('P-42')
+    expect(payload.phase).toBe('phase1')
+    expect(payload.schemaVersion).toBe(4)
   })
 
   it('puts the survey answers, consent time and shapes into that file', async () => {
@@ -111,24 +118,38 @@ describe('Header in the study variant', () => {
     expect(JSON.stringify(payload)).not.toContain('blob:x')
   })
 
-  it('tells the participant which file to upload after exporting', async () => {
+  it('tells the participant which file to upload without showing the ID', async () => {
     const { screen } = await renderStudyHeader()
 
     screen.getByRole('button', { name: '⬇ Export' }).click()
 
-    expect(await screen.findByRole('dialog')).toHaveTextContent('P-42.json')
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveTextContent('_phase1.json')
+    expect(dialog).not.toHaveTextContent('P-42')
   })
 
-  it('names the file after an edited participant ID', async () => {
-    const { screen, downloadJSON } = await renderStudyHeader()
+  it('exports phase 2 under its own file name, with the post-survey answers', async () => {
+    localStorage.clear()
+    seedSession('P-42', { phase: 'phase2' })
+    localStorage.setItem('seg-annotate:lang', 'en')
+    const { screen, downloadJSON } = await renderStudyHeader('phase2')
 
-    screen.getByRole('button', { name: 'P-42' }).click()
-    const input = await screen.findByDisplayValue('P-42')
-    const { fireEvent } = await import('@testing-library/react')
-    fireEvent.change(input, { target: { value: 'P-43' } })
-    fireEvent.keyDown(input, { key: 'Enter' })
     screen.getByRole('button', { name: '⬇ Export' }).click()
 
-    expect(downloadJSON.mock.calls[0][0]).toBe('P-43.json')
+    const [filename, payload] = downloadJSON.mock.calls[0]
+    expect(filename).toBe('P-42_phase2.json')
+    expect(payload.phase).toBe('phase2')
+    expect(payload.survey.version).toBe('post-1')
+    expect(payload.survey.answers).toEqual(Object.assign({}, ...POST_SURVEY.sections.map(answersFor)))
+    expect(payload.images[0].shapes).toHaveLength(1)
+  })
+
+  it('shows phase 2 in the header of the phase 2 page', async () => {
+    localStorage.clear()
+    seedSession('P-42', { phase: 'phase2' })
+    localStorage.setItem('seg-annotate:lang', 'en')
+    const { screen } = await renderStudyHeader('phase2')
+
+    expect(screen.getByText('Phase 2 of 3')).toBeInTheDocument()
   })
 })

@@ -1,11 +1,11 @@
 import { useApp } from '../context/AppContext'
 import { ACTIVE_SURVEY } from '../survey/activeSurvey'
-import { isPostVariant } from '../variant'
 import ScreenControls from './ScreenControls'
 import SurveyForm from './survey/SurveyForm'
 
-// The pre-study survey as a full-screen step, wired to the app's saved survey
-// state. Shown after consent; submitting it opens the annotation workspace.
+// The survey of this phase as a full-screen step, wired to the app's saved
+// survey state. Shown after consent (phase 1) or the password; submitting it
+// opens the annotation workspace.
 export default function SurveyScreen() {
   const { state, setSurveyAnswer, completeSurvey, logout, t } = useApp()
 
@@ -28,7 +28,7 @@ export default function SurveyScreen() {
           answers={state.survey.answers}
           onAnswer={setSurveyAnswer}
           onSubmit={completeSurvey}
-          submitKey={isPostVariant ? 'survey.submitPost' : 'survey.submit'}
+          submitKey="survey.submit"
         />
         <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
           <button type="button" onClick={logout} className="link-btn link-btn-muted">

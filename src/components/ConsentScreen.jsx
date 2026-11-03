@@ -15,7 +15,7 @@ function renderParagraph(paragraph) {
 // agreement before they can continue; the time they did is stored with the
 // survey answers.
 export default function ConsentScreen() {
-  const { acceptConsent, logout, t } = useApp()
+  const { acceptConsent, t } = useApp()
   const [agreed, setAgreed] = useState({})
   const isAllAgreed = CONSENT_TEXT.agreements.every(({ id }) => agreed[id])
 
@@ -65,10 +65,7 @@ export default function ConsentScreen() {
           </label>
         ))}
 
-        <div className="flex gap-2 justify-between mt-6">
-          <button type="button" onClick={logout} className="toolbar-btn">
-            {t('header.logout')}
-          </button>
+        <div className="flex gap-2 justify-end mt-6">
           <button type="submit" disabled={!isAllAgreed} className="toolbar-btn-primary">
             {t('consent.continue')}
           </button>

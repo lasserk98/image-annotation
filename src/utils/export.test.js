@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   buildExportData,
-  buildPostExportData,
   downloadJSON,
   participantFilename,
+  phaseFileEnding,
   toJsonFilename,
 } from './export'
 
@@ -107,10 +107,22 @@ describe('buildExportData with a survey', () => {
     expect(data).not.toHaveProperty('survey')
   })
 
-  it('is schema version 3', () => {
+  it('is schema version 4', () => {
     const data = buildExportData({ images: IMAGES, shapesByImage: SHAPES, classes: CLASSES })
 
-    expect(data.schemaVersion).toBe(3)
+    expect(data.schemaVersion).toBe(4)
+  })
+
+  it('records which phase the file comes from, so the three files of a participant stay apart', () => {
+    const data = buildExportData({ participantId: 'P-1', phase: 'phase2', images: IMAGES, shapesByImage: SHAPES, classes: CLASSES })
+
+    expect(data.phase).toBe('phase2')
+  })
+
+  it('records no phase in the Creator export', () => {
+    const data = buildExportData({ images: IMAGES, shapesByImage: SHAPES, classes: CLASSES })
+
+    expect(data.phase).toBeNull()
   })
 
   it('still contains no image data and nothing that could hold a score or answer key', () => {
@@ -146,61 +158,30 @@ describe('participantFilename', () => {
   })
 })
 
-const POST_SURVEY_STATE = {
-  version: 'post-1',
-  consentAcceptedAt: null,
-  answers: { 'post.1': 2, 'ai.1': 1, 'conv.3': 3 },
-  completedAt: '2026-12-01T11:58:00.000Z',
-}
-
-describe('buildPostExportData', () => {
-  it('holds the participant, the times and the raw answers, and nothing else', () => {
-    const data = buildPostExportData({ participantId: 'P-1', survey: POST_SURVEY_STATE })
-
-    expect(Object.keys(data).sort()).toEqual(
-      ['exportedAt', 'participantId', 'schemaVersion', 'survey', 'tool'].sort(),
-    )
-    expect(data).toMatchObject({ participantId: 'P-1', tool: 'image-annotation', schemaVersion: 3 })
-    expect(data.survey).toEqual(POST_SURVEY_STATE)
-  })
-
-  it('has no images, shapes or treatment', () => {
-    const data = buildPostExportData({ participantId: 'P-1', survey: POST_SURVEY_STATE })
-
-    expect(data).not.toHaveProperty('images')
-    expect(data).not.toHaveProperty('treatment')
-  })
-
-  it('exports a copy of the survey and a current timestamp', () => {
-    const data = buildPostExportData({ participantId: 'P-1', survey: POST_SURVEY_STATE })
-
-    expect(data.survey).not.toBe(POST_SURVEY_STATE)
-    expect(data.survey.answers).not.toBe(POST_SURVEY_STATE.answers)
-    expect(Number.isNaN(Date.parse(data.exportedAt))).toBe(false)
-  })
-
-  it('contains nothing that could hold a score or answer key', () => {
-    const data = buildPostExportData({ participantId: 'P-1', survey: POST_SURVEY_STATE })
-
-    expect(JSON.stringify(data)).not.toMatch(/score|correct|answerKey/i)
-  })
-})
-
-describe('participantFilename with a suffix', () => {
-  it('adds the suffix before the extension', () => {
-    expect(participantFilename('P-1', 'post')).toBe('P-1_post.json')
+describe('participantFilename with a phase', () => {
+  it('names each phase file after the participant ID, so the three never collide', () => {
+    expect(participantFilename('P-1', 'phase1')).toBe('P-1_phase1.json')
+    expect(participantFilename('P-1', 'phase2')).toBe('P-1_phase2.json')
+    expect(participantFilename('P-1', 'phase3')).toBe('P-1_phase3.json')
   })
 
   it('cleans the ID the same way', () => {
-    expect(participantFilename('a b/c', 'post')).toBe('a_b_c_post.json')
+    expect(participantFilename('a b/c', 'phase1')).toBe('a_b_c_phase1.json')
   })
 
-  it('uses the fallback name with the suffix', () => {
-    expect(participantFilename('  ', 'post')).toBe('study_post.json')
+  it('uses the fallback name with the phase', () => {
+    expect(participantFilename('  ', 'phase1')).toBe('study_phase1.json')
   })
 
-  it('is unchanged without a suffix, so the study file name stays <id>.json', () => {
+  it('is unchanged without a phase', () => {
     expect(participantFilename('P-1')).toBe('P-1.json')
+  })
+})
+
+describe('phaseFileEnding', () => {
+  it('is how a phase file name ends, so the ID can be left out when telling a participant which file to upload', () => {
+    expect(phaseFileEnding('phase1')).toBe('_phase1.json')
+    expect(participantFilename('P-1', 'phase1').endsWith(phaseFileEnding('phase1'))).toBe(true)
   })
 })
 
