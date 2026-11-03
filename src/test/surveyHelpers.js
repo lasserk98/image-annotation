@@ -1,4 +1,5 @@
 import { PHASES } from '../phases'
+import { CONSENT_TEXT } from '../survey/consentText'
 import { surveySteps } from '../utils/survey'
 
 // A participant arrives through the personal link from their email. The link
@@ -69,6 +70,7 @@ export function seedSession(
   const survey = {
     version: definition.version,
     consentAcceptedAt: consent ? '2026-01-01T10:00:00.000Z' : null,
+    consentVersion: consent ? CONSENT_TEXT.version : null,
     // A finished survey has every required answer; a stored "completed" flag
     // without them is treated as tampering and discarded when read back.
     answers: isDone ? Object.assign({}, ...definition.sections.map(answersFor)) : {},

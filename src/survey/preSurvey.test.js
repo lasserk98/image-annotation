@@ -47,6 +47,14 @@ describe('pre-survey definition', () => {
     )
   })
 
+  it('tells participants how to answer the questionnaire before they have seen the video', () => {
+    const pre = sections.find((s) => s.id === 'pre')
+
+    expect(pre.intro).toBe(
+      'Antworten Sie anhand Ihrer bisherigen Erfahrungen mit anderen KI-Tools, wenn Sie bisher nicht mit KI-augmentierten Videos gearbeitet haben. (Ihre Vermutung vor dem Nutzen des Lehrvideos)',
+    )
+  })
+
   it('asks for age, gender and semester first', () => {
     const [age, gender, semester] = itemsOf('demo')
 

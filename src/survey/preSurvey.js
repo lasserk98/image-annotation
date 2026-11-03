@@ -27,7 +27,7 @@ export const PRE_SURVEY = {
       id: "pre",
       perItem: true,
       title: "Prä-interventioneller Fragebogen",
-      intro: "Bitte geben Sie an, wie sehr Sie den folgenden Aussagen zustimmen.",
+      intro: "Antworten Sie anhand Ihrer bisherigen Erfahrungen mit anderen KI-Tools, wenn Sie bisher nicht mit KI-augmentierten Videos gearbeitet haben. (Ihre Vermutung vor dem Nutzen des Lehrvideos)",
       items: [
         {"id": "pre.1", "type": "likert", "scale": "agreement", "topic": "Anatomische Orientierung", "text": "KI-augmentierte OP-Lehrvideos helfen mir, mich anatomisch im Felsenbein besser zu orientieren."},
         {"id": "pre.2", "type": "likert", "scale": "agreement", "topic": "Erkennen und Benennen von Risikostrukturen", "text": "KI-Unterstützung kann hilfreich sein, kritische Risikostrukturen (z. B. N. facialis, Sinus sigmoideus, Dura) sicherer zu erkennen und zu benennen."},

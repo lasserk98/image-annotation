@@ -251,7 +251,7 @@ describe('App', () => {
 
       const screen = await renderApp('phase3')
 
-      expect(screen.getByText(/PLATZHALTER/)).toBeInTheDocument()
+      expect(screen.getByText(/Ich kann mich auch heute noch gut an die im Video gezeigten anatomischen Strukturen/)).toBeInTheDocument()
       expect(screen.queryByRole('heading', { name: CONSENT_TEXT.title })).not.toBeInTheDocument()
     })
 

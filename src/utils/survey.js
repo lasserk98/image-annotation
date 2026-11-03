@@ -3,7 +3,7 @@ import { SCALES } from '../survey/scales'
 // A fresh survey: nothing accepted, nothing answered, not submitted. Answers
 // are kept raw, keyed by item id.
 export function emptySurvey(version) {
-  return { version, consentAcceptedAt: null, answers: {}, completedAt: null }
+  return { version, consentAcceptedAt: null, consentVersion: null, answers: {}, completedAt: null }
 }
 
 const isPlainObject = (value) =>
@@ -30,6 +30,7 @@ export function sanitizeSurvey(raw, definition) {
   return {
     version,
     consentAcceptedAt: typeof raw.consentAcceptedAt === 'string' ? raw.consentAcceptedAt : null,
+    consentVersion: typeof raw.consentVersion === 'string' ? raw.consentVersion : null,
     answers,
     completedAt: completed ? raw.completedAt : null,
   }

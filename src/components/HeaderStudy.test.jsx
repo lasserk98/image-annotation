@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { POST_SURVEY } from '../survey/postSurvey'
+import { CONSENT_TEXT } from '../survey/consentText'
 import { PRE_SURVEY } from '../survey/preSurvey'
 import { answersFor, closeLink, openLink, seedSession } from '../test/surveyHelpers'
 
@@ -101,7 +102,7 @@ describe('Header in a study phase', () => {
     expect(filename).toBe('P-42_phase1.json')
     expect(payload.participantId).toBe('P-42')
     expect(payload.phase).toBe('phase1')
-    expect(payload.schemaVersion).toBe(4)
+    expect(payload.schemaVersion).toBe(5)
   })
 
   it('puts the survey answers, consent time and shapes into that file', async () => {
@@ -112,6 +113,7 @@ describe('Header in a study phase', () => {
     const [, payload] = downloadJSON.mock.calls[0]
     expect(payload.survey.version).toBe('pre-1')
     expect(payload.survey.consentAcceptedAt).toBe('2026-01-01T10:00:00.000Z')
+    expect(payload.survey.consentVersion).toBe(CONSENT_TEXT.version)
     expect(payload.survey.completedAt).toBe('2026-01-01T10:05:00.000Z')
     expect(payload.survey.answers).toEqual(Object.assign({}, ...PRE_SURVEY.sections.map(answersFor)))
     expect(payload.images[0].shapes).toHaveLength(1)

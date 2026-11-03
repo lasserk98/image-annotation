@@ -44,7 +44,7 @@ One codebase builds four products, selected at build time with
 | `creator` (default) | `npm run build` | The open tool: no participant ID, class editing always available, and an Export button that asks for a file name. Exports contain polygon shapes only — never the images. This is what the current deployed site serves. |
 | `phase1` | `npm run build:phase1` | Study phase 1: consent, the pre-study survey, then annotating one image. Served at `<site>/phase1/`. |
 | `phase2` | `npm run build:phase2` | Study phase 2, right after the video: the post-intervention survey (with the video ratings), then annotating one image. No consent step. Served at `<site>/phase2/`. |
-| `phase3` | `npm run build:phase3` | Study phase 3, the follow-up some weeks later: the follow-up survey, then annotating one image. No consent step. Served at `<site>/phase3/`. The survey is still a placeholder. |
+| `phase3` | `npm run build:phase3` | Study phase 3, the follow-up some weeks later: the follow-up survey, then annotating one image. No consent step. Served at `<site>/phase3/`. |
 
 The three phases are the same flow (password, [consent in phase 1], survey,
 annotate one image, export) and differ only in the table in `src/phases.js`:
@@ -124,8 +124,8 @@ casual visitors out of a study page; they are **not real access control**.
 ### The study surveys
 
 Each phase has its own survey: phase 1 the pre-study survey, phase 2 the
-post-intervention survey, phase 3 the follow-up survey (a placeholder until the
-study owner supplies it). In phase 1 a participant first sees a consent notice,
+post-intervention survey, phase 3 the follow-up survey (five statements, one per
+page). In phase 1 a participant first sees a consent notice,
 then the three-part survey (demographics and AI usage, a pre-intervention
 questionnaire, and ten knowledge questions) before the workspace opens. Phase 2
 asks 18 questions, one per page: the post-intervention questionnaire (10,
@@ -139,10 +139,13 @@ and logging out clears everything.
   (phase 3), as data, always in German (only buttons and messages follow the
   DE/EN switch). It comes from the study owner and must not be changed without
   their confirmation. Phase 2's answer ids are `post.1`–`post.10`, `ai.1`–`ai.5`,
-  `conv.1`–`conv.3`. **Replace the phase 3 placeholder** (and delete its
-  placeholder test) before the follow-up is sent.
-- **Consent text** lives in `src/survey/consentText.js` and is currently a
-  **placeholder** — replace it with the real wording before the pilot.
+  `conv.1`–`conv.3`; phase 3's are `fu.1`–`fu.5`.
+- **Consent text** lives in `src/survey/consentText.js`: the study information,
+  the Datenschutz notices and the declaration, worded by the study owner and
+  the data protection officers. Bump its `version` with every change of the
+  wording — the version is stored with each participant's consent
+  (`survey.consentVersion`). The second checkbox's label (consent to the data
+  processing) is our wording, not part of their text.
 - **Answers** are stored raw, keyed by stable item ids (`demo.*`, `pre.1`–`pre.10`,
   `mc.1`–`mc.10`). This repository holds **no answer key and does no scoring**:
   that happens later, outside this public repo. A test checks that the survey
@@ -260,16 +263,17 @@ clear.
 **Before each send-out:**
 - [ ] `phase2Password` / `phase3Password` changed from `changeme-…`, and the
       same values put in the emails.
-- [ ] The phase 3 survey placeholder (`src/survey/followUpSurvey.js`) replaced
-      with the real questionnaire, and the image to expect set in
-      `src/phases.js`, before phase 3 goes out.
-- [ ] The consent text (`src/survey/consentText.js`): the Datenschutz section is
-      still a placeholder.
+- [ ] The image to expect for phase 3 set in `src/phases.js` before phase 3
+      goes out.
+- [ ] The data protection officers have seen the consent text, including what it
+      leaves out: hosting on GitHub Pages (visitors' IP addresses), uploads via
+      NextCloud, the AI-usage and knowledge-test answers, and the follow-up
+      session some weeks later.
 - [ ] A dry run with two or three people through the real emails on Windows and
       macOS, then check the uploaded files load in your analysis.
 
 **Your analysis** now receives three files per participant (`<id>_phase1.json`,
-`_phase2.json`, `_phase3.json`), each with `schemaVersion` 4 and a `phase` field,
+`_phase2.json`, `_phase3.json`), each with `schemaVersion` 5 and a `phase` field,
 and — unlike before — phase 2 and 3 files also contain the annotated image. The
 old `<id>.json` and `<id>_post.json` no longer exist.
 
@@ -301,10 +305,11 @@ format of the (separate, private) analysis step.
   "treatment": null,
   "exportedAt": "2026-09-01T12:00:00.000Z",
   "tool": "image-annotation",
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "survey": {
     "version": "pre-1",
     "consentAcceptedAt": "2026-09-01T11:50:00.000Z",
+    "consentVersion": "consent-1",
     "completedAt": "2026-09-01T11:58:00.000Z",
     "answers": { "demo.age": 24, "demo.gender": "divers", "pre.1": 2, "mc.1": "C" }
   },
@@ -339,11 +344,18 @@ participant apart.
 
 All three phase files have this same shape, each with its own survey. Which
 survey it is shows in `survey.version`: `pre-1` (phase 1), `post-1` (phase 2) or
-`followup-placeholder` (phase 3, until the real one is in). `consentAcceptedAt`
-is `null` in phases 2 and 3, which have no consent step. Phase 2's answers are
+`followup-1` (phase 3). `consentAcceptedAt` and `consentVersion` are `null` in
+phases 2 and 3, which have no consent step; `consentVersion` names the wording
+of the consent text that was accepted. Phase 2's answers are
 numbers keyed `post.*`, `ai.*` and `conv.*`. The `images` entry of each file
 holds that phase's annotated image.
 
+> **`schemaVersion` 5** added `survey.consentVersion`, the version of the consent
+> text the participant accepted (`null` where there is no consent step, or where
+> consent was given before versions were recorded). Changing the wording does
+> not ask earlier participants again: bump `version` and decide separately
+> whether they need to re-consent.
+>
 > **`schemaVersion` 4** added the top-level `phase` (`phase1` | `phase2` |
 > `phase3`; `null` for the creator). Every phase now carries its annotations as
 > well as its survey: the separate answers-only post file (`<id>_post.json`,

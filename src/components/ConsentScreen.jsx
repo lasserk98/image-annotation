@@ -11,6 +11,29 @@ function renderParagraph(paragraph) {
   )
 }
 
+function renderSubsection({ heading, paragraphs }) {
+  return (
+    <div key={heading}>
+      <h3 className="text-sm font-semibold mt-4 mb-1" style={{ color: 'var(--text)' }}>
+        {heading}
+      </h3>
+      {paragraphs.map(renderParagraph)}
+    </div>
+  )
+}
+
+function renderSection({ heading, paragraphs, subsections = [] }) {
+  return (
+    <section key={heading}>
+      <h2 className="text-base font-semibold mt-5 mb-2" style={{ color: 'var(--text)' }}>
+        {heading}
+      </h2>
+      {paragraphs.map(renderParagraph)}
+      {subsections.map(renderSubsection)}
+    </section>
+  )
+}
+
 // Shown after login and before the survey. The participant has to tick every
 // agreement before they can continue; the time they did is stored with the
 // survey answers.
@@ -31,22 +54,20 @@ export default function ConsentScreen() {
       <ScreenControls />
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-lg rounded-2xl p-8 m-auto"
+        className="w-full max-w-2xl rounded-2xl p-8 m-auto"
         style={{
           background: 'var(--surface)',
           border: '1px solid var(--border)',
           boxShadow: 'var(--shadow-lg)',
         }}
       >
-        <h1 className="text-xl font-semibold mb-4" style={{ color: 'var(--text)' }}>
+        <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text)' }}>
           {CONSENT_TEXT.title}
         </h1>
-        {CONSENT_TEXT.paragraphs.map(renderParagraph)}
-
-        <h2 className="text-base font-semibold mt-5 mb-2" style={{ color: 'var(--text)' }}>
-          {CONSENT_TEXT.dataProtection.heading}
-        </h2>
-        {CONSENT_TEXT.dataProtection.paragraphs.map(renderParagraph)}
+        <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+          {CONSENT_TEXT.subtitle}
+        </p>
+        {CONSENT_TEXT.sections.map(renderSection)}
 
         <h2 className="text-base font-semibold mt-5 mb-2" style={{ color: 'var(--text)' }}>
           {CONSENT_TEXT.declaration.heading}

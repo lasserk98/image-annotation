@@ -77,6 +77,7 @@ describe('buildExportData', () => {
 const SURVEY = {
   version: 'pre-1',
   consentAcceptedAt: '2026-10-21T11:50:00.000Z',
+  consentVersion: 'consent-1',
   answers: { 'demo.age': 24, 'pre.1': 2, 'mc.1': 'C' },
   completedAt: '2026-10-21T11:58:00.000Z',
 }
@@ -107,10 +108,10 @@ describe('buildExportData with a survey', () => {
     expect(data).not.toHaveProperty('survey')
   })
 
-  it('is schema version 4', () => {
+  it('is schema version 5', () => {
     const data = buildExportData({ images: IMAGES, shapesByImage: SHAPES, classes: CLASSES })
 
-    expect(data.schemaVersion).toBe(4)
+    expect(data.schemaVersion).toBe(5)
   })
 
   it('records which phase the file comes from, so the three files of a participant stay apart', () => {

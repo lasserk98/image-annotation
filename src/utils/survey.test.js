@@ -124,6 +124,7 @@ describe('emptySurvey and sanitizeSurvey', () => {
     expect(emptySurvey('v1')).toEqual({
       version: 'v1',
       consentAcceptedAt: null,
+      consentVersion: null,
       answers: {},
       completedAt: null,
     })
@@ -133,11 +134,18 @@ describe('emptySurvey and sanitizeSurvey', () => {
     const saved = {
       version: 'v1',
       consentAcceptedAt: '2026-01-01T10:00:00.000Z',
+      consentVersion: 'consent-1',
       answers: { n: 3 },
       completedAt: null,
     }
 
     expect(sanitizeSurvey(saved, DEFINITION)).toEqual(saved)
+  })
+
+  it('reads a survey saved without a consent version as having none', () => {
+    const saved = { version: 'v1', consentAcceptedAt: 'x', answers: {}, completedAt: null }
+
+    expect(sanitizeSurvey(saved, DEFINITION).consentVersion).toBeNull()
   })
 
   it.each([null, undefined, 'text', 5, []])('falls back to empty for %s', (raw) => {
@@ -151,7 +159,7 @@ describe('emptySurvey and sanitizeSurvey', () => {
   })
 
   it('drops answers that are not an object and non-string timestamps', () => {
-    const saved = { version: 'v1', consentAcceptedAt: 12, answers: 'nope', completedAt: {} }
+    const saved = { version: 'v1', consentAcceptedAt: 12, consentVersion: 3, answers: 'nope', completedAt: {} }
 
     expect(sanitizeSurvey(saved, DEFINITION)).toEqual(emptySurvey('v1'))
   })

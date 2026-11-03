@@ -16,6 +16,7 @@ import {
 import { parseClasses, sortClassesByName } from '../utils/classes'
 import { emptySurvey, isSurveyComplete, sanitizeSurvey } from '../utils/survey'
 import { ACTIVE_SURVEY } from '../survey/activeSurvey'
+import { CONSENT_TEXT } from '../survey/consentText'
 import { translate } from '../i18n/translations'
 import { isCreatorVariant } from '../variant'
 import { LINK_PARAMS } from '../utils/linkParams'
@@ -158,7 +159,7 @@ function reducer(state, action) {
     case 'ACCEPT_CONSENT': {
       // Keep the first time consent was given.
       if (state.survey.consentAcceptedAt) return state
-      const survey = { ...state.survey, consentAcceptedAt: action.at }
+      const survey = { ...state.survey, consentAcceptedAt: action.at, consentVersion: action.version }
       persistSession({ ...state, survey })
       return { ...state, survey }
     }
@@ -340,7 +341,7 @@ export function AppProvider({ children }) {
   )
   const logout = useCallback(() => dispatch({ type: 'LOGOUT' }), [])
   const acceptConsent = useCallback(
-    () => dispatch({ type: 'ACCEPT_CONSENT', at: new Date().toISOString() }),
+    () => dispatch({ type: 'ACCEPT_CONSENT', at: new Date().toISOString(), version: CONSENT_TEXT.version }),
     [],
   )
   const setSurveyAnswer = useCallback(

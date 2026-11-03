@@ -12,6 +12,9 @@ import { polygonArea } from './geometry'
 // schemaVersion 4 added the top-level `phase` ('phase1' | 'phase2' | 'phase3',
 // null for the Creator): a participant uploads one file per phase, and every
 // phase now carries the survey and the annotations of its image.
+// schemaVersion 5 added `survey.consentVersion`, the version of the consent
+// text that was accepted (null where there is no consent step, or where the
+// consent was given before versions were recorded).
 export function buildExportData({
   participantId = null,
   phase = null,
@@ -29,7 +32,7 @@ export function buildExportData({
     treatment: treatment || null,
     exportedAt: new Date().toISOString(),
     tool: 'image-annotation',
-    schemaVersion: 4,
+    schemaVersion: 5,
     ...(survey && { survey: copySurvey(survey) }),
     images: images.map((img) => {
       const shapes = shapesByImage[img.id] || []
@@ -49,8 +52,8 @@ export function buildExportData({
   }
 }
 
-function copySurvey({ version, consentAcceptedAt, completedAt, answers }) {
-  return { version, consentAcceptedAt, completedAt, answers: { ...answers } }
+function copySurvey({ version, consentAcceptedAt, consentVersion, completedAt, answers }) {
+  return { version, consentAcceptedAt, consentVersion, completedAt, answers: { ...answers } }
 }
 
 function round(n) {

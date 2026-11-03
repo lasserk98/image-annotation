@@ -24,7 +24,7 @@ describe('active survey', () => {
   it('is the follow-up survey in phase 3', async () => {
     const { ACTIVE_SURVEY } = await loadActive('phase3')
 
-    expect(ACTIVE_SURVEY.version).toBe('followup-placeholder')
+    expect(ACTIVE_SURVEY.version).toBe('followup-1')
   })
 
   it('stays the pre-study survey for the creator, which has no survey of its own', async () => {

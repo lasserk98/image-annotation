@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PHASES } from '../phases'
+import { CONSENT_TEXT } from '../survey/consentText'
 import { PRE_SURVEY } from '../survey/preSurvey'
 import { closeLink, openLink } from '../test/surveyHelpers'
 import { emptySurvey } from '../utils/survey'
@@ -74,6 +75,16 @@ describe('survey state (study phase)', () => {
 
     expect(ctx.state.survey.consentAcceptedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
     expect(savedSession().survey.consentAcceptedAt).toBe(ctx.state.survey.consentAcceptedAt)
+  })
+
+  it('records which consent text version was accepted', async () => {
+    await setup()
+    act(() => ctx.login('P-1', null))
+
+    act(() => ctx.acceptConsent())
+
+    expect(ctx.state.survey.consentVersion).toBe(CONSENT_TEXT.version)
+    expect(savedSession().survey.consentVersion).toBe(CONSENT_TEXT.version)
   })
 
   it('stores and overwrites a raw answer by item id, and saves it', async () => {
@@ -213,6 +224,7 @@ describe('survey state (study phase)', () => {
     const survey = {
       version: 'pre-1',
       consentAcceptedAt: '2026-01-01T10:00:00.000Z',
+      consentVersion: 'consent-1',
       answers: { 'pre.1': 3 },
       completedAt: null,
     }
