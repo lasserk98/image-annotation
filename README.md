@@ -308,7 +308,7 @@ format of the (separate, private) analysis step.
   "survey": {
     "version": "pre-1",
     "consentAcceptedAt": "2026-09-01T11:50:00.000Z",
-    "consentVersion": "consent-1",
+    "consentVersion": "consent-2",
     "completedAt": "2026-09-01T11:58:00.000Z",
     "answers": { "demo.age": 24, "demo.gender": "divers", "pre.1": 2, "mc.1": "C" }
   },

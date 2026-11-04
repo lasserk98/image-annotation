@@ -69,18 +69,39 @@ describe('ConsentScreen', () => {
     renderConsent()
 
     for (const name of [
-      'Verantwortliche Stelle',
-      'Zweck und Rechtsgrundlage',
-      'Codierung und Anonymisierung',
-      'Zugriff und Weitergabe',
-      'Speicherdauer',
-      'Ihre Datenschutzrechte',
-      'Kontakt für Datenschutzfragen',
+      'Verantwortliche Einrichtung und Kooperation',
+      'Zweck der Datenverarbeitung',
+      'Pseudonymisierung, Speicherung und Anonymisierung',
+      'Zugriff, Weitergabe und Veröffentlichung',
+      'Aufbewahrungsdauer',
+      'Ihre Rechte',
+      'Kontakte und Datenschutzaufsicht',
     ]) {
       expect(screen.getByRole('heading', { name })).toBeInTheDocument()
     }
     expect(screen.getByText(/datenschutz@med\.uni-rostock\.de/)).toBeInTheDocument()
     expect(screen.getByText(/solenne\.sandkoetter@uni-rostock\.de/)).toBeInTheDocument()
+  })
+
+  it('names the responsible institution and the supervisory authority', () => {
+    renderConsent()
+
+    expect(screen.getByText(/Verantwortliche Einrichtung: Universitätsmedizin Rostock/)).toBeInTheDocument()
+    expect(screen.getByText(/Schillingallee 35, 18057 Rostock/)).toBeInTheDocument()
+    expect(screen.getByText(/Landesbeauftragte für Datenschutz und Informationsfreiheit Mecklenburg-Vorpommern/)).toBeInTheDocument()
+    expect(screen.getByText(/info@datenschutz-mv\.de/)).toBeInTheDocument()
+  })
+
+  it('no longer shows the superseded headings', () => {
+    renderConsent()
+
+    for (const name of ['Verantwortliche Stelle', 'Zweck und Rechtsgrundlage', 'Codierung und Anonymisierung', 'Speicherdauer']) {
+      expect(screen.queryByRole('heading', { name })).not.toBeInTheDocument()
+    }
+  })
+
+  it('is version consent-2, as the wording changed after consent-1', () => {
+    expect(CONSENT_TEXT.version).toBe('consent-2')
   })
 
   it('is no longer a placeholder and has no signature lines', () => {

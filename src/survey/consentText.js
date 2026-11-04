@@ -6,7 +6,7 @@
 // A section is `{ heading, paragraphs, subsections? }`; a subsection is
 // `{ heading, paragraphs }`.
 export const CONSENT_TEXT = {
-  version: 'consent-1',
+  version: 'consent-2',
   title: 'Studie zur KI-gestützten Annotation von Lehrvideos in der Cochleaimplantation',
   subtitle: 'Information für Studienteilnehmende, Datenschutzhinweise und Einverständniserklärung',
   sections: [
@@ -35,47 +35,46 @@ export const CONSENT_TEXT = {
       ],
       subsections: [
         {
-          heading: 'Verantwortliche Stelle',
+          heading: 'Verantwortliche Einrichtung und Kooperation',
           paragraphs: [
-            'Die Studie erfolgt in Kooperation zwischen dem Fraunhofer-Institut für Nachrichtentechnik, Heinrich-Hertz-Institut (Fraunhofer HHI), der Universitätsmedizin Rostock und der Charité – Universitätsmedizin Berlin.',
+            'Verantwortliche Einrichtung: Universitätsmedizin Rostock – rechtsfähige Teilkörperschaft der Universität Rostock, Schillingallee 35, 18057 Rostock, Tel. 0381 494 0, www.med.uni-rostock.de, presse@med.uni-rostock.de. Die Studie erfolgt in Kooperation mit dem Fraunhofer-Institut für Nachrichtentechnik, Heinrich-Hertz-Institut (Fraunhofer HHI).',
           ],
         },
         {
-          heading: 'Zweck und Rechtsgrundlage',
+          heading: 'Zweck der Datenverarbeitung',
           paragraphs: [
-            'Die Daten werden zur wissenschaftlichen Auswertung der Lehrvideos und zur Beantwortung der Forschungsfragen dieser Studie verarbeitet.',
-            'Die Verarbeitung der im Rahmen der Studie erhobenen personenbezogenen Daten erfolgt auf Grundlage der Einwilligung der teilnehmenden Personen gemäß Art. 6 Abs. 1 lit. a DSGVO. Die Verarbeitung zu wissenschaftlichen Forschungszwecken erfolgt unter Beachtung der Schutzmaßnahmen gemäß Art. 89 DSGVO sowie der einschlägigen datenschutzrechtlichen Bestimmungen.',
+            'Die erhobenen Daten werden ausschließlich für die wissenschaftliche Auswertung der Lehrvideos und zur Beantwortung der Forschungsfragen dieser Studie verwendet.',
           ],
         },
         {
-          heading: 'Codierung und Anonymisierung',
+          heading: 'Pseudonymisierung, Speicherung und Anonymisierung',
           paragraphs: [
-            'Die Fragebögen werden zunächst mit einem Code versehen, sodass eine Zuordnung zu einzelnen Teilnehmenden vorübergehend möglich sein kann. Solange eine solche Zuordnung möglich ist, handelt es sich um pseudonymisierte und weiterhin datenschutzrechtlich geschützte Daten, nicht um vollständig anonyme Daten. Die Zuordnungsliste wird getrennt von den Fragebogendaten und zugriffsgeschützt aufbewahrt. Sobald es der Studienzweck zulässt, sollen die für die wissenschaftliche Auswertung verwendeten Daten anonymisiert werden.',
+            'Die erhobenen Fragebogendaten werden pseudonymisiert, indem personenbezogene Angaben durch einen Code ersetzt werden. Die Zuordnung der Codes zu den teilnehmenden Personen wird in einer separaten, gesicherten Entschlüsselungsdatei aufbewahrt. Die pseudonymisierten Daten werden auf gesicherten Servern gespeichert; elektronische Übertragungen erfolgen verschlüsselt. Nach Abschluss der wissenschaftlichen Auswertung wird die Entschlüsselungsdatei gelöscht, sodass die verbleibenden Studiendaten anonymisiert sind.',
           ],
         },
         {
-          heading: 'Zugriff und Weitergabe',
+          heading: 'Zugriff, Weitergabe und Veröffentlichung',
           paragraphs: [
-            'Zugriff auf nicht anonymisierte bzw. pseudonymisierte Daten erhalten ausschließlich hierzu berechtigte Personen des Studienteams.',
+            'Zugriff auf personenbezogene Daten haben ausschließlich berechtigte, unmittelbar an Durchführung und Auswertung beteiligte Personen des Studienteams. Personenbezogene Daten werden nicht an Dritte außerhalb des Studienzentrums weitergegeben. Pseudonymisierte Daten können, soweit für die wissenschaftliche Auswertung erforderlich, an Kooperationspartner oder wissenschaftliche Einrichtungen übermittelt werden. Wissenschaftliche Veröffentlichungen erfolgen ausschließlich in anonymisierter oder zusammengefasster Form.',
           ],
         },
         {
-          heading: 'Speicherdauer',
+          heading: 'Aufbewahrungsdauer',
           paragraphs: [
-            'Die im Rahmen der Studie erhobenen Forschungsdaten werden zunächst pseudonymisiert verarbeitet. Die Zuordnungsliste wird getrennt von den Forschungsdaten und zugriffsgeschützt aufbewahrt. Nach Abschluss der Auswertung werden die Forschungsdaten, soweit möglich, anonymisiert.',
-            'Die anonymisierten Forschungsdaten werden zur Sicherung der wissenschaftlichen Nachvollziehbarkeit und gemäß den Grundsätzen guter wissenschaftlicher Praxis grundsätzlich für zehn Jahre archiviert. Personenbezogene Daten und die Zuordnungsliste werden gelöscht, sobald deren weitere Speicherung für die Durchführung, Dokumentation oder zulässige Archivierung der Studie nicht mehr erforderlich ist und keine gesetzlichen oder institutionellen Aufbewahrungspflichten entgegenstehen.',
+            'Die anonymisierten Forschungsdaten werden nach Ende der Studie gelöscht. Die Entschlüsselungsdatei wird nach Abschluss der wissenschaftlichen Auswertung gelöscht. Für Einwilligungsunterlagen gelten die jeweils einschlägigen Aufbewahrungsvorgaben.',
           ],
         },
         {
-          heading: 'Ihre Datenschutzrechte',
+          heading: 'Ihre Rechte',
           paragraphs: [
-            'Im Rahmen der geltenden Datenschutzbestimmungen können – abhängig von Rechtsgrundlage und Verarbeitungsstadium – Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch und gegebenenfalls Datenübertragbarkeit bestehen. Sofern die Verarbeitung auf einer Einwilligung beruht, kann diese grundsätzlich mit Wirkung für die Zukunft widerrufen werden. Nach wirksamer Anonymisierung können Daten in der Regel nicht mehr einer einzelnen Person zugeordnet und deshalb auch nicht individuell herausgesucht oder gelöscht werden. Sie können sich außerdem bei einer zuständigen Datenschutzaufsichtsbehörde beschweren.',
+            'Gemäß den geltenden Datenschutzbestimmungen bestehen grundsätzlich Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Widerspruch und Datenübertragbarkeit. Eine erteilte Einwilligung kann widerrufen werden. Die verantwortliche Einrichtung prüft im Einzelfall, inwieweit dem jeweiligen Anliegen entsprochen werden kann. Nach vollständiger Anonymisierung ist eine individuelle Zuordnung und Löschung der Daten nicht mehr möglich. Außerdem besteht ein Beschwerderecht bei der zuständigen Datenschutzaufsichtsbehörde.',
           ],
         },
         {
-          heading: 'Kontakt für Datenschutzfragen',
+          heading: 'Kontakte und Datenschutzaufsicht',
           paragraphs: [
-            'Datenschutzkontakt der Universitätsmedizin Rostock: Der Datenschutzbeauftragte der Universitätsmedizin Rostock ist erreichbar unter Doberaner Str. 142, 18057 Rostock, Tel. 0381 494 5155 / 5173, E-Mail: datenschutz@med.uni-rostock.de.',
+            'Datenschutzbeauftragter der Universitätsmedizin Rostock: Doberaner Str. 142, 18057 Rostock, Tel. 0381 494 5155 / 5173, E-Mail: datenschutz@med.uni-rostock.de.',
+            'Zuständige Aufsichtsbehörde: Der Landesbeauftragte für Datenschutz und Informationsfreiheit Mecklenburg-Vorpommern, Schloss Schwerin, Lennéstr. 1, 19053 Schwerin, Tel. 0385 59494 0, E-Mail: info@datenschutz-mv.de.',
             'Kontakt für Fragen zur Studie: Solenne Sandkötter/Doktorandin, E-Mail-Kontakt: solenne.sandkoetter@uni-rostock.de.',
           ],
         },
