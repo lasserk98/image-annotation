@@ -22,3 +22,13 @@ export function polygonCentroid(points) {
 export function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value))
 }
+
+// The point on segment a–b closest to p. A zero-length segment is just a.
+export function projectOntoSegment(p, a, b) {
+  const dx = b.x - a.x
+  const dy = b.y - a.y
+  const lengthSquared = dx * dx + dy * dy
+  if (lengthSquared === 0) return { x: a.x, y: a.y }
+  const t = clamp(((p.x - a.x) * dx + (p.y - a.y) * dy) / lengthSquared, 0, 1)
+  return { x: a.x + t * dx, y: a.y + t * dy }
+}

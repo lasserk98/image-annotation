@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { createShape } from '../utils/shapes'
 import { isCreatorVariant } from '../variant'
-import { clamp, distance, polygonCentroid } from '../utils/geometry'
+import { clamp, distance, polygonCentroid, projectOntoSegment } from '../utils/geometry'
 import Toolbar from './Toolbar'
 
 const MIN_SCALE = 0.05
@@ -278,7 +278,11 @@ export default function AnnotationCanvas() {
 
   function insertVertexOnEdge(e, shape, edgeIndex) {
     e.stopPropagation()
-    const p = toImageSpace(e.clientX, e.clientY)
+    const from = shape.points[edgeIndex]
+    const to = shape.points[(edgeIndex + 1) % shape.points.length]
+    // Snap onto the edge: the hit area is wider than the line, so the raw
+    // click point could land a few pixels beside it.
+    const p = projectOntoSegment(toImageSpace(e.clientX, e.clientY), from, to)
     const points = [...shape.points]
     points.splice(edgeIndex + 1, 0, p)
     commitShapes(shapes.map((s) => (s.id === shape.id ? { ...s, points } : s)))
@@ -484,6 +488,10 @@ export default function AnnotationCanvas() {
                           y2={next.y}
                           stroke="transparent"
                           strokeWidth={EDGE_HIT_R * 2 * invScale}
+                          // Without this the press bubbles to the background,
+                          // which deselects the shape and unmounts these very
+                          // edges before the double-click can land on one.
+                          onMouseDown={(e) => e.stopPropagation()}
                           onDoubleClick={(e) => insertVertexOnEdge(e, shape, i)}
                           style={{ cursor: 'copy' }}
                         />
