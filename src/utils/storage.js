@@ -7,6 +7,7 @@ const SESSION_KEY = ACTIVE_PHASE?.sessionKey ?? 'seg-annotate:session'
 const CLASSES_KEY = 'seg-annotate:classes'
 const LANG_KEY = 'seg-annotate:lang'
 const THEME_KEY = 'seg-annotate:theme'
+const TUTORIAL_SEEN_KEY = 'seg-annotate:tutorial-seen'
 
 export function loadSession() {
   try {
@@ -93,6 +94,24 @@ export function saveTheme(theme) {
     } else {
       localStorage.setItem(THEME_KEY, theme)
     }
+  } catch {
+    // ignore
+  }
+}
+
+// Whether the participant has already clicked through the picture tutorial.
+// Without storage it reads as "not seen", so the tutorial simply shows again.
+export function loadTutorialSeen() {
+  try {
+    return localStorage.getItem(TUTORIAL_SEEN_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function saveTutorialSeen() {
+  try {
+    localStorage.setItem(TUTORIAL_SEEN_KEY, '1')
   } catch {
     // ignore
   }

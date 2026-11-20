@@ -57,3 +57,29 @@ describe('session storage per phase', () => {
     expect(localStorage.getItem(KEYS.phase1)).not.toBeNull()
   })
 })
+
+describe('tutorial seen flag', () => {
+  beforeEach(() => localStorage.clear())
+  afterEach(() => {
+    localStorage.clear()
+    vi.unstubAllEnvs()
+  })
+
+  it('reads as not seen until it is saved', async () => {
+    const { loadTutorialSeen, saveTutorialSeen } = await loadStorage('phase1')
+
+    expect(loadTutorialSeen()).toBe(false)
+    saveTutorialSeen()
+    expect(loadTutorialSeen()).toBe(true)
+  })
+
+  it('reads as not seen when storage throws', async () => {
+    const { loadTutorialSeen } = await loadStorage('phase1')
+    const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('blocked')
+    })
+
+    expect(loadTutorialSeen()).toBe(false)
+    spy.mockRestore()
+  })
+})

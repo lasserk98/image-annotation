@@ -36,7 +36,7 @@ const STEP_KEYS = [
   isCreatorVariant ? 'usage.creator.step8' : 'usage.step8',
 ]
 
-export default function UsageModal({ onClose }) {
+export default function UsageModal({ onClose, onReplayTutorial }) {
   const { t, state } = useApp()
   // The creator variant has no study, so it skips the study instructions.
   const instructions = isCreatorVariant
@@ -87,6 +87,12 @@ export default function UsageModal({ onClose }) {
             ✕
           </button>
         </div>
+
+        {onReplayTutorial && (
+          <button onClick={onReplayTutorial} className="toolbar-btn w-full mb-5">
+            {t('usage.replayTutorial')}
+          </button>
+        )}
 
         {instructions && (
           <div className="mb-5">

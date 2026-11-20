@@ -6,6 +6,8 @@ import { ACTIVE_SURVEY } from '../survey/activeSurvey'
 import { sanitizeSurvey } from '../utils/survey'
 import { buildExportData, downloadJSON, participantFilename, phaseFileEnding } from '../utils/export'
 import UsageModal from './UsageModal'
+import TutorialModal from './TutorialModal'
+import { loadTutorialSeen, saveTutorialSeen } from '../utils/storage'
 import ExportWarningModal from './ExportWarningModal'
 import ExportFilenameModal from './ExportFilenameModal'
 import ExportDoneModal from './ExportDoneModal'
@@ -18,6 +20,8 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
   const { state, logout, clearJustLoggedIn, setLang, setTheme, t } = useApp()
   const { participantId, treatment, images, shapesByImage, classes, lang, theme, creatorMode } = state
   const [showUsage, setShowUsage] = useState(false)
+  // null | 'first' (must be clicked through) | 'replay' (can be closed)
+  const [tutorialMode, setTutorialMode] = useState(null)
   const [showExportWarning, setShowExportWarning] = useState(false)
   const [showExportNameModal, setShowExportNameModal] = useState(false)
   const [showExportDone, setShowExportDone] = useState(false)
@@ -28,7 +32,10 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
   // session already saved in localStorage.
   useEffect(() => {
     if (state.justLoggedIn) {
-      setShowUsage(true)
+      // Only phase 1 opens the picture tutorial on its own, once; every other
+      // phase (and the creator) goes straight to the instructions.
+      if (ACTIVE_PHASE?.id === 'phase1' && !loadTutorialSeen()) setTutorialMode('first')
+      else setShowUsage(true)
       clearJustLoggedIn()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,7 +235,32 @@ export default function Header({ leftOpen, rightOpen, onToggleLeft, onToggleRigh
         )}
       </div>
 
-      {showUsage && <UsageModal onClose={() => setShowUsage(false)} />}
+      {showUsage && (
+        <UsageModal
+          onClose={() => setShowUsage(false)}
+          onReplayTutorial={() => {
+            setShowUsage(false)
+            setTutorialMode('replay')
+          }}
+        />
+      )}
+      {tutorialMode && (
+        <TutorialModal
+          onFinish={() => {
+            if (tutorialMode === 'first') saveTutorialSeen()
+            setTutorialMode(null)
+            setShowUsage(true)
+          }}
+          onClose={
+            tutorialMode === 'replay'
+              ? () => {
+                  setTutorialMode(null)
+                  setShowUsage(true)
+                }
+              : undefined
+          }
+        />
+      )}
       {showExportWarning && (
         <ExportWarningModal
           unannotated={unannotated}
